@@ -141,7 +141,13 @@ function Dashboard() {
                     <span className={`h-2 w-2 rounded-full shrink-0 ${m.status === "confirmed" ? "bg-success" : "bg-yellow-500"}`} />
                     <span className="font-medium truncate">{m.projects.title}</span>
                   </div>
-                  <span className="text-xs text-muted-foreground capitalize shrink-0">{m.status}</span>
+                  {m.status === "confirmed" ? (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-success/15 text-success border border-success/30 px-2 py-0.5 text-[10px] font-bold tracking-[0.2em] shrink-0">
+                      {t("status_confirmed_big")}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground capitalize shrink-0">{m.status}</span>
+                  )}
                 </Link>
               </li>
             ))}

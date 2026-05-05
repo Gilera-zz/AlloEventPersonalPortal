@@ -42,10 +42,17 @@ function MyProjects() {
       <div className="space-y-5">
         {data?.map((row) => (
           <ProjectCard key={row.projects.id} project={row.projects} action={
-            <Badge variant={row.status === "confirmed" ? "default" : "secondary"} className="capitalize">
-              <span className={`h-1.5 w-1.5 rounded-full mr-1.5 ${row.status === "confirmed" ? "bg-success" : "bg-yellow-500"}`} />
-              {row.status === "confirmed" ? t("status_confirmed") : t("status_pending")}
-            </Badge>
+            row.status === "confirmed" ? (
+              <Badge className="bg-success text-background hover:bg-success/90 border-transparent font-bold tracking-[0.2em]">
+                <span className="h-1.5 w-1.5 rounded-full mr-1.5 bg-background" />
+                {t("status_confirmed_big")}
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="capitalize">
+                <span className="h-1.5 w-1.5 rounded-full mr-1.5 bg-yellow-500" />
+                {t("status_pending")}
+              </Badge>
+            )
           } />
         ))}
       </div>

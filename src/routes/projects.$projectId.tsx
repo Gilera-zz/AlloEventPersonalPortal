@@ -6,7 +6,17 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { sv, enUS } from "date-fns/locale";
-import { ArrowLeft, MapPin, Calendar, Shirt, Users, ExternalLink } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  Calendar,
+  Shirt,
+  Users,
+  ExternalLink,
+  CheckCircle2,
+  ClipboardList,
+  Lock,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 
@@ -61,6 +71,8 @@ function ProjectDetail() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const isConfirmed = myInterest?.status === "confirmed";
+
   return (
     <main className="max-w-4xl mx-auto px-6 md:px-10 py-10">
       <Button asChild variant="ghost" size="sm" className="mb-6">
@@ -73,10 +85,20 @@ function ProjectDetail() {
             <img src={project.image_url} alt={project.title} className="w-full h-72 md:h-96 object-cover" />
           )}
           <div className="p-8 md:p-10">
-            {project.category && (
-              <span className="px-2 py-1 bg-secondary text-muted-foreground rounded text-[10px] font-bold uppercase tracking-wider">{project.category}</span>
-            )}
-            <h1 className="text-3xl md:text-5xl font-bold mt-3 tracking-tight">{project.title}</h1>
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div className="min-w-0">
+                {project.category && (
+                  <span className="px-2 py-1 bg-secondary text-muted-foreground rounded text-[10px] font-bold uppercase tracking-wider">{project.category}</span>
+                )}
+                <h1 className="text-3xl md:text-5xl font-bold mt-3 tracking-tight">{project.title}</h1>
+              </div>
+              {isConfirmed && (
+                <div className="inline-flex items-center gap-2 rounded-md bg-success/15 text-success border border-success/30 px-3 py-1.5 text-xs font-bold tracking-[0.2em]">
+                  <CheckCircle2 className="h-4 w-4" />
+                  {t("status_confirmed_big")}
+                </div>
+              )}
+            </div>
 
             <div className="grid sm:grid-cols-2 gap-4 mt-8 text-sm">
               <div className="flex items-start gap-3 text-muted-foreground">
@@ -132,11 +154,38 @@ function ProjectDetail() {
               </div>
             )}
 
+            {isConfirmed && (
+              <section className="mt-10 rounded-xl border border-success/30 bg-success/5 p-6">
+                <div className="flex items-center gap-2 text-success text-[10px] font-mono uppercase tracking-widest">
+                  <ClipboardList className="h-4 w-4" />
+                  {t("briefing_tab")}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">{t("briefing_intro")}</p>
+                <div className="mt-4 whitespace-pre-line leading-relaxed text-sm">
+                  {project.staff_instructions
+                    ? project.staff_instructions
+                    : <span className="text-muted-foreground italic">{t("briefing_empty")}</span>}
+                </div>
+              </section>
+            )}
+
+            {!isConfirmed && myInterest && (
+              <section className="mt-10 rounded-xl border border-border bg-muted/30 p-5 flex items-start gap-3">
+                <Lock className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                    {t("briefing_tab")}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">{t("briefing_locked")}</p>
+                </div>
+              </section>
+            )}
+
             <div className="mt-10 pt-6 border-t border-border flex items-center gap-3 flex-wrap">
               <Button size="lg" variant={myInterest ? "secondary" : "default"} onClick={() => toggle.mutate()} disabled={toggle.isPending}>
                 {myInterest ? t("signed_up") : t("show_interest")}
               </Button>
-              {myInterest && (
+              {myInterest && !isConfirmed && (
                 <span className="text-xs text-muted-foreground">{t("signed_up_hint")}</span>
               )}
             </div>
