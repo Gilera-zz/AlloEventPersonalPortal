@@ -6,9 +6,12 @@ import { LangToggle } from "@/components/LangToggle";
 import { Button } from "@/components/ui/button";
 import { Home, Briefcase, User, LogOut, Menu, X, ShieldCheck, CalendarDays, ListChecks } from "lucide-react";
 import logo from "@/assets/allo-logo.png";
+import { UserAvatar } from "@/components/UserAvatar";
+import { useMyProfile } from "@/hooks/useMyProfile";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, isAdmin, signOut } = useAuth();
+  const { data: profile } = useMyProfile();
   const { t } = useI18n();
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -33,11 +36,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
         {user && (
           <div className="mt-5 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-              {(user.email?.[0] ?? "A").toUpperCase()}
-            </div>
+            <UserAvatar
+              url={profile?.avatar_url}
+              name={profile?.full_name}
+              email={user.email}
+              className="h-9 w-9 ring-2 ring-primary/30"
+            />
             <div className="min-w-0">
-              <div className="text-sm font-medium truncate">{user.email}</div>
+              <div className="text-sm font-medium truncate">{profile?.full_name || user.email}</div>
               <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
                 {isAdmin ? "Admin" : "Crew"}
               </div>
@@ -96,6 +102,16 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
         <div className="flex items-center gap-2">
           <LangToggle />
+          {user && (
+            <Link to="/profile" aria-label="Profile" className="rounded-full">
+              <UserAvatar
+                url={profile?.avatar_url}
+                name={profile?.full_name}
+                email={user.email}
+                className="h-8 w-8 ring-2 ring-primary/40"
+              />
+            </Link>
+          )}
           <Button size="icon" variant="ghost" onClick={() => setOpen(true)} aria-label="Menu">
             <Menu className="h-5 w-5" />
           </Button>
