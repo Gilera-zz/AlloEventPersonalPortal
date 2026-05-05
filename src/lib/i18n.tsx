@@ -39,8 +39,10 @@ const dict = {
   // Projects
   projects_kicker: { sv: "Möjligheter", en: "Opportunities" },
   feed_subtitle: { sv: "Anmäl intresse för kommande uppdrag.", en: "Express interest in upcoming assignments." },
-  show_interest: { sv: "Visa intresse", en: "Express interest" },
+  show_interest: { sv: "Intresserad", en: "Interested" },
   withdraw_interest: { sv: "Dra tillbaka intresse", en: "Withdraw interest" },
+  signed_up: { sv: "Anmäld", en: "Signed up" },
+  signed_up_hint: { sv: "Klicka för att ta bort", en: "Click to withdraw" },
   interested: { sv: "Intresserad", en: "Interested" },
   interest_registered: { sv: "Intresseanmälan registrerad", en: "Interest registered" },
   interest_withdrawn: { sv: "Intresseanmälan borttagen", en: "Interest withdrawn" },
