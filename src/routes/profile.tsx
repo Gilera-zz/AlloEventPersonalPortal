@@ -55,6 +55,21 @@ type ProfileForm = {
   bank_account: string;
 };
 
+function normalizeSkills(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((v) => (typeof v === "string" ? v.trim() : String(v ?? "").trim()))
+      .filter((v) => v.length > 0);
+  }
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+  }
+  return [];
+}
+
 const EMPTY_FORM: ProfileForm = {
   full_name: "",
   personal_id: "",
@@ -129,7 +144,7 @@ function Profile() {
       bank_clearing: profile.bank_clearing ?? "",
       bank_account: profile.bank_account ?? "",
     });
-    setSkills(profile.special_skills ?? []);
+    setSkills(normalizeSkills(profile.special_skills));
   }, [profile]);
 
   const setField = <K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) =>
@@ -137,11 +152,12 @@ function Profile() {
 
   const save = useMutation({
     mutationFn: async () => {
+      const safeSkills = Array.isArray(skills) ? skills : normalizeSkills(skills);
       const { error } = await supabase
         .from("profiles")
         .update({
           ...form,
-          special_skills: skills,
+          special_skills: safeSkills,
           updated_at: new Date().toISOString(),
         })
         .eq("id", user!.id);
@@ -248,11 +264,12 @@ function Profile() {
   function addSkill() {
     const v = skillInput.trim();
     if (!v) return;
-    if (skills.some((s) => s.toLowerCase() === v.toLowerCase())) {
+    const current = Array.isArray(skills) ? skills : [];
+    if (current.some((s) => s.toLowerCase() === v.toLowerCase())) {
       setSkillInput("");
       return;
     }
-    setSkills((p) => [...p, v]);
+    setSkills([...current, v]);
     setSkillInput("");
   }
 
@@ -384,7 +401,7 @@ function Profile() {
                   {t("add_skill")}
                 </Button>
               </div>
-              {skills.length > 0 && (
+              {Array.isArray(skills) && skills.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
                   {skills.map((s) => (
                     <Badge key={s} variant="secondary" className="pl-3 pr-1 py-1 gap-1">
@@ -392,7 +409,9 @@ function Profile() {
                       <button
                         type="button"
                         aria-label={`${t("remove")} ${s}`}
-                        onClick={() => setSkills((p) => p.filter((x) => x !== s))}
+                        onClick={() =>
+                          setSkills((p) => (Array.isArray(p) ? p.filter((x) => x !== s) : []))
+                        }
                         className="ml-1 rounded-full hover:bg-background/50 p-0.5"
                       >
                         <X className="h-3 w-3" />
