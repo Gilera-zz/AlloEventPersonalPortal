@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -18,11 +20,19 @@ export const Route = createFileRoute("/admin/projects")({
   component: () => <RequireAuth requireAdmin><AdminProjects /></RequireAuth>,
 });
 
+interface ApplicantProfile {
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+}
+
 interface ApplicantRow {
   id: string;
   status: string;
   user_id: string;
-  profiles: { full_name: string | null; email: string | null; phone: string | null } | null;
+  created_at: string;
+  profiles: ApplicantProfile | null;
 }
 
 function AdminProjects() {
@@ -137,13 +147,16 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
   const { t } = useI18n();
   const qc = useQueryClient();
 
-  const { data: applicants } = useQuery({
+  const { data: applicants, isLoading } = useQuery({
     queryKey: ["project-applicants", projectId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("project_interests")
-        .select("id,status,user_id,profiles:user_id(full_name,email,phone)")
-        .eq("project_id", projectId);
+        .select(
+          "id,status,user_id,created_at,profiles:profiles!project_interests_user_id_profiles_fkey(full_name,email,phone,avatar_url)",
+        )
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: true });
       if (error) throw error;
       return data as unknown as ApplicantRow[];
     },
@@ -161,17 +174,38 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
   return (
     <div className="border-t border-border bg-background/40 p-4">
       <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-3">{t("applicants")}</div>
-      {(!applicants || applicants.length === 0) && <p className="text-sm text-muted-foreground">{t("no_applicants")}</p>}
+      {isLoading && <p className="text-sm text-muted-foreground">{t("loading")}</p>}
+      {!isLoading && (!applicants || applicants.length === 0) && (
+        <p className="text-sm text-muted-foreground">{t("no_applicants")}</p>
+      )}
       <ul className="space-y-2">
         {applicants?.map((a) => {
           const confirmed = a.status === "confirmed";
+          const displayName = a.profiles?.full_name || a.profiles?.email || a.user_id.slice(0, 8);
           return (
             <li key={a.id} className="flex items-center justify-between gap-3 bg-card border border-border rounded-md px-3 py-2">
               <div className="flex items-center gap-3 min-w-0">
-                <span className={`h-2 w-2 rounded-full shrink-0 ${confirmed ? "bg-success" : "bg-yellow-500"}`} />
+                <UserAvatar
+                  url={a.profiles?.avatar_url}
+                  name={a.profiles?.full_name}
+                  email={a.profiles?.email}
+                  className="h-9 w-9 shrink-0"
+                />
                 <div className="min-w-0">
-                  <div className="text-sm font-medium truncate">{a.profiles?.full_name || a.profiles?.email || a.user_id.slice(0, 8)}</div>
-                  <div className="text-xs text-muted-foreground truncate">{a.profiles?.email} {a.profiles?.phone && `· ${a.profiles.phone}`}</div>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-sm font-medium truncate">{displayName}</span>
+                    <Badge
+                      variant={confirmed ? "default" : "secondary"}
+                      className="capitalize shrink-0"
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full mr-1.5 ${confirmed ? "bg-success" : "bg-yellow-500"}`} />
+                      {confirmed ? t("status_confirmed") : t("status_interested")}
+                    </Badge>
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {a.profiles?.email}
+                    {a.profiles?.phone && ` · ${a.profiles.phone}`}
+                  </div>
                 </div>
               </div>
               <Button
