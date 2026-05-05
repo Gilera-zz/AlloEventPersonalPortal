@@ -68,48 +68,102 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          avatar_url: string | null
           bank_account: string | null
           bank_clearing: string | null
+          bank_name: string | null
+          bio: string | null
           clothing_size: string | null
           created_at: string
           drivers_license: string | null
           email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
           full_name: string | null
           id: string
           occupation: string | null
           personal_id: string | null
           phone: string | null
+          special_skills: string[] | null
           updated_at: string
         }
         Insert: {
           address?: string | null
+          avatar_url?: string | null
           bank_account?: string | null
           bank_clearing?: string | null
+          bank_name?: string | null
+          bio?: string | null
           clothing_size?: string | null
           created_at?: string
           drivers_license?: string | null
           email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           full_name?: string | null
           id: string
           occupation?: string | null
           personal_id?: string | null
           phone?: string | null
+          special_skills?: string[] | null
           updated_at?: string
         }
         Update: {
           address?: string | null
+          avatar_url?: string | null
           bank_account?: string | null
           bank_clearing?: string | null
+          bank_name?: string | null
+          bio?: string | null
           clothing_size?: string | null
           created_at?: string
           drivers_license?: string | null
           email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           full_name?: string | null
           id?: string
           occupation?: string | null
           personal_id?: string | null
           phone?: string | null
+          special_skills?: string[] | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      gdpr_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          request_type: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          request_type?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          request_type?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
