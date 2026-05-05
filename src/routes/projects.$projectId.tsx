@@ -44,16 +44,19 @@ function ProjectDetail() {
     mutationFn: async () => {
       if (myInterest) {
         await supabase.from("project_interests").delete().eq("id", myInterest.id);
-      } else {
-        const { error } = await supabase.from("project_interests").insert({ user_id: user!.id, project_id: projectId });
-        if (error) throw error;
+        return { wasInterested: true };
       }
+      const { error } = await supabase.from("project_interests").insert({ user_id: user!.id, project_id: projectId });
+      if (error) throw error;
+      return { wasInterested: false };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       refetch();
       qc.invalidateQueries({ queryKey: ["my-interests-ids"] });
       qc.invalidateQueries({ queryKey: ["my-interests-dash"] });
       qc.invalidateQueries({ queryKey: ["my-interests-list"] });
+      qc.invalidateQueries({ queryKey: ["project-applicants", projectId] });
+      toast.success(result.wasInterested ? t("interest_withdrawn") : t("interest_registered"));
     },
     onError: (e: any) => toast.error(e.message),
   });

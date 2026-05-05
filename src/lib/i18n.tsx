@@ -42,6 +42,8 @@ const dict = {
   show_interest: { sv: "Visa intresse", en: "Express interest" },
   withdraw_interest: { sv: "Dra tillbaka intresse", en: "Withdraw interest" },
   interested: { sv: "Intresserad", en: "Interested" },
+  interest_registered: { sv: "Intresseanmälan registrerad", en: "Interest registered" },
+  interest_withdrawn: { sv: "Intresseanmälan borttagen", en: "Interest withdrawn" },
   positions: { sv: "platser", en: "positions" },
   dress_code: { sv: "Klädkod", en: "Dress code" },
   schedule: { sv: "Schema", en: "Schedule" },
