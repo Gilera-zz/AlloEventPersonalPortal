@@ -145,20 +145,38 @@ function AdminProjects() {
 
 function ApplicantsPanel({ projectId }: { projectId: string }) {
   const { t } = useI18n();
+  const { isAdmin } = useAuth();
   const qc = useQueryClient();
 
-  const { data: applicants, isLoading } = useQuery({
+  const { data: applicants, isLoading, error: queryError } = useQuery<ApplicantRow[], Error>({
     queryKey: ["project-applicants", projectId],
     queryFn: async () => {
+      const currentProjectId = projectId;
       const { data, error } = await supabase
         .from("project_interests")
-        .select(
-          "id,status,user_id,created_at,profiles:profiles!project_interests_user_id_profiles_fkey(full_name,email,phone,avatar_url)",
-        )
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data as unknown as ApplicantRow[];
+        .select("*, profiles:profiles!project_interests_user_id_profiles_fkey(*)")
+        .eq("project_id", currentProjectId);
+
+      console.log("🔍 DEBUG: Project ID som används:", currentProjectId);
+      console.log("🔍 DEBUG: Hämtade sökande från DB:", data);
+      console.log("❌ DEBUG: Felmeddelande vid hämtning:", error);
+
+      if (error) throw new Error(error.message);
+
+      return (data ?? []).map((row: any) => ({
+        id: row.id,
+        status: row.status,
+        user_id: row.user_id,
+        created_at: row.created_at,
+        profiles: row.profiles
+          ? {
+              full_name: row.profiles.full_name ?? null,
+              email: row.profiles.email ?? null,
+              phone: row.profiles.phone ?? null,
+              avatar_url: row.profiles.avatar_url ?? null,
+            }
+          : null,
+      })) as ApplicantRow[];
     },
   });
 
@@ -174,8 +192,18 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
   return (
     <div className="border-t border-border bg-background/40 p-4">
       <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-3">{t("applicants")}</div>
+      {!isAdmin && (
+        <p className="text-sm text-destructive mb-2">
+          DEBUG: nuvarande användare saknar admin-rollen — RLS kan blockera hämtningen.
+        </p>
+      )}
+      {queryError && (
+        <p className="text-sm text-destructive mb-2 break-words">
+          DEBUG fel: {queryError.message}
+        </p>
+      )}
       {isLoading && <p className="text-sm text-muted-foreground">{t("loading")}</p>}
-      {!isLoading && (!applicants || applicants.length === 0) && (
+      {!isLoading && !queryError && (!applicants || applicants.length === 0) && (
         <p className="text-sm text-muted-foreground">{t("no_applicants")}</p>
       )}
       <ul className="space-y-2">
