@@ -132,10 +132,13 @@ function ProjectDetail() {
               </div>
             )}
 
-            <div className="mt-10 pt-6 border-t border-border">
+            <div className="mt-10 pt-6 border-t border-border flex items-center gap-3 flex-wrap">
               <Button size="lg" variant={myInterest ? "secondary" : "default"} onClick={() => toggle.mutate()} disabled={toggle.isPending}>
-                {myInterest ? t("withdraw_interest") : t("show_interest")}
+                {myInterest ? t("signed_up") : t("show_interest")}
               </Button>
+              {myInterest && (
+                <span className="text-xs text-muted-foreground">{t("signed_up_hint")}</span>
+              )}
             </div>
           </div>
         </article>
