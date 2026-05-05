@@ -79,11 +79,13 @@ export type Database = {
           email: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
+          experience: string | null
           full_name: string | null
           id: string
           occupation: string | null
           personal_id: string | null
           phone: string | null
+          skills: string[] | null
           special_skills: string[] | null
           updated_at: string
         }
@@ -100,11 +102,13 @@ export type Database = {
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          experience?: string | null
           full_name?: string | null
           id: string
           occupation?: string | null
           personal_id?: string | null
           phone?: string | null
+          skills?: string[] | null
           special_skills?: string[] | null
           updated_at?: string
         }
@@ -121,11 +125,13 @@ export type Database = {
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          experience?: string | null
           full_name?: string | null
           id?: string
           occupation?: string | null
           personal_id?: string | null
           phone?: string | null
+          skills?: string[] | null
           special_skills?: string[] | null
           updated_at?: string
         }
@@ -218,6 +224,7 @@ export type Database = {
           image_url: string | null
           location: string | null
           positions_needed: number | null
+          staff_instructions: string | null
           starts_at: string
           title: string
         }
@@ -232,6 +239,7 @@ export type Database = {
           image_url?: string | null
           location?: string | null
           positions_needed?: number | null
+          staff_instructions?: string | null
           starts_at: string
           title: string
         }
@@ -246,6 +254,7 @@ export type Database = {
           image_url?: string | null
           location?: string | null
           positions_needed?: number | null
+          staff_instructions?: string | null
           starts_at?: string
           title?: string
         }

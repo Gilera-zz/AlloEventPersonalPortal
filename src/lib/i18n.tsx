@@ -82,6 +82,11 @@ const dict = {
     sv: "En kort beskrivning av dig själv — bakgrund, intressen, vad du gillar att jobba med.",
     en: "A short description of yourself — background, interests, what you like to work on.",
   },
+  experience: { sv: "Erfarenhet", en: "Experience" },
+  experience_help: {
+    sv: "Tidigare uppdrag, arbetsplatser eller meriter som är relevanta för rollerna här.",
+    en: "Previous assignments, workplaces or merits relevant to the roles here.",
+  },
   special_skills: { sv: "Specialkompetenser", en: "Special skills" },
   special_skills_help: {
     sv: "Lägg till en kompetens och tryck Enter (t.ex. Servering, Ljudteknik, Truckkort).",
@@ -162,6 +167,43 @@ const dict = {
   status_interested: { sv: "Intresserad", en: "Interested" },
   status_confirmed: { sv: "Bekräftad", en: "Confirmed" },
   status_pending: { sv: "Väntar", en: "Pending" },
+  status_confirmed_big: { sv: "BEKRÄFTAD", en: "CONFIRMED" },
+
+  // Project briefing & admin tabs
+  briefing_tab: { sv: "Instruktioner", en: "Instructions" },
+  briefing_locked: {
+    sv: "Instruktionerna blir synliga när du är bekräftad på projektet.",
+    en: "Instructions become visible once you are confirmed on the project.",
+  },
+  briefing_empty: {
+    sv: "Inga instruktioner har lagts till för det här projektet än.",
+    en: "No instructions have been added for this project yet.",
+  },
+  briefing_intro: {
+    sv: "Information från projektledningen — t.ex. samlingstid, plats och kontakt på plats.",
+    en: "Information from the project lead — e.g. call time, meeting point and on-site contact.",
+  },
+  staff_instructions: { sv: "Instruktioner till personal", en: "Staff instructions" },
+  staff_instructions_help: {
+    sv: "Visas endast för bekräftad personal på projektsidan.",
+    en: "Only shown to confirmed staff on the project page.",
+  },
+  tab_applicants: { sv: "Sökande", en: "Applicants" },
+  tab_logistics: { sv: "Logistik", en: "Logistics" },
+  tab_briefing: { sv: "Briefing", en: "Briefing" },
+  logistics_title: { sv: "Klädstorlekar (bekräftade)", en: "Clothing sizes (confirmed)" },
+  logistics_empty: {
+    sv: "Ingen är bekräftad än — sammanställning visas när personal bekräftats.",
+    en: "Nobody confirmed yet — the summary appears when staff are confirmed.",
+  },
+  logistics_missing_size: { sv: "Ingen storlek angiven", en: "No size set" },
+  logistics_total: { sv: "Totalt", en: "Total" },
+  view_profile: { sv: "Visa profil", en: "View profile" },
+  profile_modal_contact: { sv: "Kontakt", en: "Contact" },
+  profile_modal_about: { sv: "Om mig", en: "About" },
+  profile_modal_skills: { sv: "Kompetenser", en: "Skills" },
+  profile_modal_experience: { sv: "Erfarenhet", en: "Experience" },
+  profile_modal_empty: { sv: "—", en: "—" },
 } as const;
 
 type Key = keyof typeof dict;

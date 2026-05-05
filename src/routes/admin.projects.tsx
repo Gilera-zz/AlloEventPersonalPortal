@@ -8,12 +8,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/UserAvatar";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sv, enUS } from "date-fns/locale";
-import { Trash2, Plus, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucide-react";
+import {
+  Trash2,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
+  Circle,
+  Mail,
+  Phone,
+  Save,
+} from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/admin/projects")({
@@ -21,10 +38,18 @@ export const Route = createFileRoute("/admin/projects")({
 });
 
 interface ApplicantProfile {
+  id: string;
   full_name: string | null;
   email: string | null;
   phone: string | null;
   avatar_url: string | null;
+  bio: string | null;
+  experience: string | null;
+  skills: string[] | null;
+  special_skills: string[] | null;
+  clothing_size: string | null;
+  occupation: string | null;
+  drivers_license: string | null;
 }
 
 interface ApplicantRow {
@@ -134,7 +159,7 @@ function AdminProjects() {
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-            {expandedId === p.id && <ApplicantsPanel projectId={p.id} />}
+            {expandedId === p.id && <ProjectAdminPanel project={p} />}
           </div>
         ))}
         {projects?.length === 0 && <p className="text-muted-foreground">—</p>}
@@ -143,23 +168,38 @@ function AdminProjects() {
   );
 }
 
-function ApplicantsPanel({ projectId }: { projectId: string }) {
+function ProjectAdminPanel({ project }: { project: any }) {
   const { t } = useI18n();
-  const { isAdmin } = useAuth();
-  const qc = useQueryClient();
+  return (
+    <div className="border-t border-border bg-background/40 p-4">
+      <Tabs defaultValue="applicants" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="applicants">{t("tab_applicants")}</TabsTrigger>
+          <TabsTrigger value="logistics">{t("tab_logistics")}</TabsTrigger>
+          <TabsTrigger value="briefing">{t("tab_briefing")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="applicants">
+          <ApplicantsPanel projectId={project.id} />
+        </TabsContent>
+        <TabsContent value="logistics">
+          <LogisticsPanel projectId={project.id} />
+        </TabsContent>
+        <TabsContent value="briefing">
+          <BriefingPanel project={project} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
 
-  const { data: applicants, isLoading, error: queryError } = useQuery<ApplicantRow[], Error>({
+function useApplicants(projectId: string) {
+  return useQuery<ApplicantRow[], Error>({
     queryKey: ["project-applicants", projectId],
     queryFn: async () => {
-      const currentProjectId = projectId;
       const { data, error } = await supabase
         .from("project_interests")
         .select("*, profiles:profiles!project_interests_user_id_profiles_fkey(*)")
-        .eq("project_id", currentProjectId);
-
-      console.log("🔍 DEBUG: Project ID som används:", currentProjectId);
-      console.log("🔍 DEBUG: Hämtade sökande från DB:", data);
-      console.log("❌ DEBUG: Felmeddelande vid hämtning:", error);
+        .eq("project_id", projectId);
 
       if (error) throw new Error(error.message);
 
@@ -170,15 +210,32 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
         created_at: row.created_at,
         profiles: row.profiles
           ? {
+              id: row.profiles.id,
               full_name: row.profiles.full_name ?? null,
               email: row.profiles.email ?? null,
               phone: row.profiles.phone ?? null,
               avatar_url: row.profiles.avatar_url ?? null,
+              bio: row.profiles.bio ?? null,
+              experience: row.profiles.experience ?? null,
+              skills: row.profiles.skills ?? null,
+              special_skills: row.profiles.special_skills ?? null,
+              clothing_size: row.profiles.clothing_size ?? null,
+              occupation: row.profiles.occupation ?? null,
+              drivers_license: row.profiles.drivers_license ?? null,
             }
           : null,
       })) as ApplicantRow[];
     },
   });
+}
+
+function ApplicantsPanel({ projectId }: { projectId: string }) {
+  const { t } = useI18n();
+  const { isAdmin } = useAuth();
+  const qc = useQueryClient();
+  const [profileOpen, setProfileOpen] = useState<ApplicantProfile | null>(null);
+
+  const { data: applicants, isLoading, error: queryError } = useApplicants(projectId);
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -190,7 +247,7 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
   });
 
   return (
-    <div className="border-t border-border bg-background/40 p-4">
+    <div>
       <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-3">{t("applicants")}</div>
       {!isAdmin && (
         <p className="text-sm text-destructive mb-2">
@@ -212,7 +269,12 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
           const displayName = a.profiles?.full_name || a.profiles?.email || a.user_id.slice(0, 8);
           return (
             <li key={a.id} className="flex items-center justify-between gap-3 bg-card border border-border rounded-md px-3 py-2">
-              <div className="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                className="flex items-center gap-3 min-w-0 flex-1 text-left rounded-md -mx-1 px-1 py-0.5 hover:bg-background/60 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={() => a.profiles && setProfileOpen(a.profiles)}
+                aria-label={t("view_profile")}
+              >
                 <UserAvatar
                   url={a.profiles?.avatar_url}
                   name={a.profiles?.full_name}
@@ -221,7 +283,7 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
                 />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm font-medium truncate">{displayName}</span>
+                    <span className="text-sm font-medium truncate underline-offset-2 hover:underline">{displayName}</span>
                     <Badge
                       variant={confirmed ? "default" : "secondary"}
                       className="capitalize shrink-0"
@@ -235,7 +297,7 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
                     {a.profiles?.phone && ` · ${a.profiles.phone}`}
                   </div>
                 </div>
-              </div>
+              </button>
               <Button
                 size="sm"
                 variant={confirmed ? "secondary" : "default"}
@@ -247,6 +309,228 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
           );
         })}
       </ul>
+
+      <ApplicantProfileModal
+        profile={profileOpen}
+        onOpenChange={(open) => !open && setProfileOpen(null)}
+      />
+    </div>
+  );
+}
+
+function ApplicantProfileModal({
+  profile,
+  onOpenChange,
+}: {
+  profile: ApplicantProfile | null;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { t } = useI18n();
+  const open = !!profile;
+  const skills = profile?.skills ?? profile?.special_skills ?? [];
+  const displayName = profile?.full_name || profile?.email || "—";
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <UserAvatar
+              url={profile?.avatar_url}
+              name={profile?.full_name}
+              email={profile?.email}
+              className="h-12 w-12"
+            />
+            <div className="min-w-0">
+              <DialogTitle className="truncate">{displayName}</DialogTitle>
+              {profile?.occupation && (
+                <p className="text-xs text-muted-foreground mt-0.5">{profile.occupation}</p>
+              )}
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="space-y-5 mt-2">
+          <section>
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary mb-2">
+              {t("profile_modal_contact")}
+            </div>
+            <div className="text-sm space-y-1">
+              {profile?.email && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="h-4 w-4 shrink-0" />
+                  <a className="hover:underline" href={`mailto:${profile.email}`}>{profile.email}</a>
+                </div>
+              )}
+              {profile?.phone && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Phone className="h-4 w-4 shrink-0" />
+                  <a className="hover:underline" href={`tel:${profile.phone}`}>{profile.phone}</a>
+                </div>
+              )}
+              {!profile?.email && !profile?.phone && (
+                <p className="text-sm text-muted-foreground">{t("profile_modal_empty")}</p>
+              )}
+            </div>
+          </section>
+
+          <section>
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary mb-2">
+              {t("profile_modal_about")}
+            </div>
+            <p className="text-sm whitespace-pre-line leading-relaxed">
+              {profile?.bio || t("profile_modal_empty")}
+            </p>
+          </section>
+
+          <section>
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary mb-2">
+              {t("profile_modal_skills")}
+            </div>
+            {skills.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {skills.map((s) => (
+                  <Badge key={s} variant="secondary">{s}</Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t("profile_modal_empty")}</p>
+            )}
+          </section>
+
+          <section>
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary mb-2">
+              {t("profile_modal_experience")}
+            </div>
+            <p className="text-sm whitespace-pre-line leading-relaxed">
+              {profile?.experience || t("profile_modal_empty")}
+            </p>
+          </section>
+
+          {(profile?.clothing_size || profile?.drivers_license) && (
+            <section className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
+              {profile?.clothing_size && (
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{t("clothing_size")}</div>
+                  <div className="text-sm font-medium mt-0.5">{profile.clothing_size}</div>
+                </div>
+              )}
+              {profile?.drivers_license && (
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{t("drivers_license")}</div>
+                  <div className="text-sm font-medium mt-0.5">{profile.drivers_license}</div>
+                </div>
+              )}
+            </section>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function LogisticsPanel({ projectId }: { projectId: string }) {
+  const { t } = useI18n();
+  const { data: applicants, isLoading } = useApplicants(projectId);
+
+  const summary = useMemo(() => {
+    const confirmed = (applicants ?? []).filter((a) => a.status === "confirmed");
+    const counts = new Map<string, number>();
+    for (const a of confirmed) {
+      const size = a.profiles?.clothing_size?.trim();
+      const key = size && size.length > 0 ? size : "__missing__";
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    const ordered = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+    const rows: { label: string; count: number; missing?: boolean }[] = [];
+    for (const size of ordered) {
+      if (counts.has(size)) rows.push({ label: size, count: counts.get(size)! });
+    }
+    for (const [key, count] of counts) {
+      if (key === "__missing__" || ordered.includes(key)) continue;
+      rows.push({ label: key, count });
+    }
+    if (counts.has("__missing__")) {
+      rows.push({ label: t("logistics_missing_size"), count: counts.get("__missing__")!, missing: true });
+    }
+    return { rows, total: confirmed.length };
+  }, [applicants, t]);
+
+  return (
+    <div>
+      <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-3">
+        {t("logistics_title")}
+      </div>
+      {isLoading && <p className="text-sm text-muted-foreground">{t("loading")}</p>}
+      {!isLoading && summary.total === 0 && (
+        <p className="text-sm text-muted-foreground">{t("logistics_empty")}</p>
+      )}
+      {summary.total > 0 && (
+        <>
+          <ul className="grid sm:grid-cols-2 gap-2">
+            {summary.rows.map((r) => (
+              <li
+                key={r.label}
+                className={`flex items-center justify-between bg-card border border-border rounded-md px-3 py-2 text-sm ${
+                  r.missing ? "text-muted-foreground italic" : ""
+                }`}
+              >
+                <span className="font-medium">{r.label}</span>
+                <Badge variant="secondary" className="font-mono">{r.count} st</Badge>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 text-xs font-mono uppercase tracking-widest text-muted-foreground">
+            {t("logistics_total")}: <span className="text-foreground font-bold">{summary.total}</span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function BriefingPanel({ project }: { project: any }) {
+  const { t } = useI18n();
+  const qc = useQueryClient();
+  const [text, setText] = useState<string>(project.staff_instructions ?? "");
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("projects")
+        .update({ staff_instructions: text })
+        .eq("id", project.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("save"));
+      qc.invalidateQueries({ queryKey: ["admin-projects"] });
+      qc.invalidateQueries({ queryKey: ["project", project.id] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-1">
+          {t("staff_instructions")}
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">{t("staff_instructions_help")}</p>
+        <Textarea
+          rows={8}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={t("briefing_intro")}
+          className="resize-none"
+        />
+      </div>
+      <div className="flex justify-end">
+        <Button onClick={() => save.mutate()} disabled={save.isPending}>
+          <Save className="h-4 w-4 mr-2" />
+          {save.isPending ? t("saving") : t("save")}
+        </Button>
+      </div>
     </div>
   );
 }

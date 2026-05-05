@@ -45,6 +45,7 @@ type ProfileForm = {
   phone: string;
   address: string;
   bio: string;
+  experience: string;
   occupation: string;
   drivers_license: string;
   clothing_size: string;
@@ -62,6 +63,7 @@ const EMPTY_FORM: ProfileForm = {
   phone: "",
   address: "",
   bio: "",
+  experience: "",
   occupation: "",
   drivers_license: "",
   clothing_size: "",
@@ -120,6 +122,7 @@ function Profile() {
       phone: profile.phone ?? "",
       address: profile.address ?? "",
       bio: profile.bio ?? "",
+      experience: profile.experience ?? "",
       occupation: profile.occupation ?? "",
       drivers_license: profile.drivers_license ?? "",
       clothing_size: profile.clothing_size ?? "",
@@ -129,7 +132,7 @@ function Profile() {
       bank_clearing: profile.bank_clearing ?? "",
       bank_account: profile.bank_account ?? "",
     });
-    setSkills(profile.special_skills ?? []);
+    setSkills(profile.skills ?? profile.special_skills ?? []);
   }, [profile]);
 
   const setField = <K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) =>
@@ -141,6 +144,7 @@ function Profile() {
         .from("profiles")
         .update({
           ...form,
+          skills,
           special_skills: skills,
           updated_at: new Date().toISOString(),
         })
@@ -361,6 +365,18 @@ function Profile() {
                 placeholder={t("bio_help")}
                 rows={4}
                 className="mt-1 resize-none"
+              />
+            </div>
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                {t("experience")}
+              </Label>
+              <p className="text-xs text-muted-foreground mt-1">{t("experience_help")}</p>
+              <Textarea
+                value={form.experience}
+                onChange={(e) => setField("experience", e.target.value)}
+                rows={4}
+                className="mt-2 resize-none"
               />
             </div>
             <div>
