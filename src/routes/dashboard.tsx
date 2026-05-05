@@ -48,7 +48,7 @@ function Dashboard() {
     },
   });
 
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -56,6 +56,8 @@ function Dashboard() {
       return data;
     },
   });
+
+  const firstName = profile?.full_name?.trim().split(/\s+/)[0];
 
   // Group upcoming by month key
   const groups = new Map<string, ProjectLite[]>();
@@ -72,8 +74,12 @@ function Dashboard() {
         <img src={hero} alt="" width={1600} height={900} className="w-full h-56 md:h-72 object-cover opacity-50" />
         <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
         <div className="absolute bottom-0 left-0 p-6 md:p-10">
-          <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">{t("hello")}</span>
-          <h1 className="text-3xl md:text-4xl font-bold mt-2">{profile?.full_name || user?.email}</h1>
+          {!profileLoading && (
+            <>
+              <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">{t("hello")}</span>
+              <h1 className="text-3xl md:text-4xl font-bold mt-2">{firstName || user?.email}</h1>
+            </>
+          )}
           <p className="text-muted-foreground mt-2 max-w-xl text-sm">{t("welcome_body")}</p>
         </div>
       </section>
