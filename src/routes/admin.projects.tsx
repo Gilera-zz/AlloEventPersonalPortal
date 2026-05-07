@@ -217,8 +217,8 @@ function useApplicants(projectId: string) {
               avatar_url: row.profiles.avatar_url ?? null,
               bio: row.profiles.bio ?? null,
               experience: row.profiles.experience ?? null,
-              skills: row.profiles.skills ?? null,
-              special_skills: row.profiles.special_skills ?? null,
+              skills: Array.isArray(row.profiles.skills) ? row.profiles.skills : null,
+              special_skills: Array.isArray(row.profiles.special_skills) ? row.profiles.special_skills : null,
               clothing_size: row.profiles.clothing_size ?? null,
               occupation: row.profiles.occupation ?? null,
               drivers_license: row.profiles.drivers_license ?? null,
@@ -327,7 +327,8 @@ function ApplicantProfileModal({
 }) {
   const { t } = useI18n();
   const open = !!profile;
-  const skills = profile?.skills ?? profile?.special_skills ?? [];
+  const rawSkills = profile?.skills ?? profile?.special_skills;
+  const skills = Array.isArray(rawSkills) ? rawSkills : [];
   const displayName = profile?.full_name || profile?.email || "—";
 
   return (

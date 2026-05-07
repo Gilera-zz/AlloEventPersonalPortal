@@ -132,7 +132,8 @@ function Profile() {
       bank_clearing: profile.bank_clearing ?? "",
       bank_account: profile.bank_account ?? "",
     });
-    setSkills(profile.skills ?? profile.special_skills ?? []);
+    const rawSkills = profile.skills ?? profile.special_skills;
+    setSkills(Array.isArray(rawSkills) ? rawSkills : []);
   }, [profile]);
 
   const setField = <K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) =>
