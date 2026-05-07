@@ -204,6 +204,47 @@ const dict = {
   profile_modal_skills: { sv: "Kompetenser", en: "Skills" },
   profile_modal_experience: { sv: "Erfarenhet", en: "Experience" },
   profile_modal_empty: { sv: "—", en: "—" },
+
+  // Validation
+  validation_phone_format: {
+    sv: "Telefonnummer måste vara exakt 10 siffror och börja med 07.",
+    en: "Phone number must be exactly 10 digits and start with 07.",
+  },
+  validation_bank_clearing: {
+    sv: "Clearingnummer måste vara 4–5 siffror.",
+    en: "Bank clearing number must be 4–5 digits.",
+  },
+  validation_bank_account: {
+    sv: "Kontonummer får vara max 15 siffror.",
+    en: "Account number must be max 15 digits.",
+  },
+
+  // Certificates
+  group_certificates: { sv: "Certifikat & Körkort", en: "Certificates & Licenses" },
+  cert_b_license: { sv: "B-körkort", en: "B driver's license" },
+  cert_forklift: { sv: "Truckkort", en: "Forklift license" },
+  cert_serving_permit: { sv: "Serveringstillstånd", en: "Serving permit" },
+  cert_hot_works: { sv: "Heta Arbeten", en: "Hot works certificate" },
+
+  // GDPR consent
+  gdpr_consent_label: {
+    sv: "Jag godkänner Allo Events användarvillkor och att mina personuppgifter hanteras enligt integritetspolicyn.",
+    en: "I accept Allo Event's terms of use and that my personal data is handled according to the privacy policy.",
+  },
+  gdpr_consent_required: {
+    sv: "Du måste godkänna villkoren för att fortsätta.",
+    en: "You must accept the terms to continue.",
+  },
+  privacy_policy_link: { sv: "Integritetspolicy", en: "Privacy policy" },
+  privacy_page_title: { sv: "Integritetspolicy", en: "Privacy Policy" },
+
+  // Gatekeeping
+  profile_incomplete_title: {
+    sv: "Du behöver komplettera din profil innan du kan se och söka lediga uppdrag.",
+    en: "You need to complete your profile before you can view and apply for assignments.",
+  },
+  profile_incomplete_cta: { sv: "Gå till profilinställningar", en: "Go to profile settings" },
+
 } as const;
 
 type Key = keyof typeof dict;

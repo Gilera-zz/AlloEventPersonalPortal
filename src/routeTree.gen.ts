@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as MyProjectsRouteImport } from './routes/my-projects'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -24,6 +25,11 @@ import { Route as AdminProjectsRouteImport } from './routes/admin.projects'
 const ProjectsRoute = ProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/availability': typeof AvailabilityRoute
   '/dashboard': typeof DashboardRoute
   '/my-projects': typeof MyProjectsRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/admin/projects': typeof AdminProjectsRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/availability': typeof AvailabilityRoute
   '/dashboard': typeof DashboardRoute
   '/my-projects': typeof MyProjectsRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsIndexRoute
   '/admin/projects': typeof AdminProjectsRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/availability': typeof AvailabilityRoute
   '/dashboard': typeof DashboardRoute
   '/my-projects': typeof MyProjectsRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/admin/projects': typeof AdminProjectsRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/availability'
     | '/dashboard'
     | '/my-projects'
+    | '/privacy'
     | '/profile'
     | '/projects'
     | '/admin/projects'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/availability'
     | '/dashboard'
     | '/my-projects'
+    | '/privacy'
     | '/profile'
     | '/projects'
     | '/admin/projects'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/availability'
     | '/dashboard'
     | '/my-projects'
+    | '/privacy'
     | '/profile'
     | '/projects'
     | '/admin/projects'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   AvailabilityRoute: typeof AvailabilityRoute
   DashboardRoute: typeof DashboardRoute
   MyProjectsRoute: typeof MyProjectsRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
   AdminProjectsRoute: typeof AdminProjectsRoute
@@ -190,6 +203,13 @@ declare module '@tanstack/react-router' {
       path: '/my-projects'
       fullPath: '/my-projects'
       preLoaderRoute: typeof MyProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -272,6 +292,7 @@ const rootRouteChildren: RootRouteChildren = {
   AvailabilityRoute: AvailabilityRoute,
   DashboardRoute: DashboardRoute,
   MyProjectsRoute: MyProjectsRoute,
+  PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
   ProjectsRoute: ProjectsRouteWithChildren,
   AdminProjectsRoute: AdminProjectsRoute,

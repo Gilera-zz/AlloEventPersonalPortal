@@ -146,7 +146,9 @@ function Dashboard() {
                       {t("status_confirmed_big")}
                     </span>
                   ) : (
-                    <span className="text-xs text-muted-foreground capitalize shrink-0">{m.status}</span>
+                    <span className="text-xs text-muted-foreground capitalize shrink-0">
+                      {m.status === "interested" ? t("status_interested") : t("status_pending")}
+                    </span>
                   )}
                 </Link>
               </li>

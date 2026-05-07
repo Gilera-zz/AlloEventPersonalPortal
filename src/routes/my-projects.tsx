@@ -50,7 +50,7 @@ function MyProjects() {
             ) : (
               <Badge variant="secondary" className="capitalize">
                 <span className="h-1.5 w-1.5 rounded-full mr-1.5 bg-yellow-500" />
-                {t("status_pending")}
+                {row.status === "interested" ? t("status_interested") : t("status_pending")}
               </Badge>
             )
           } />

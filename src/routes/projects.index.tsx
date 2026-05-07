@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { ProjectCard, type ProjectRow } from "@/components/ProjectCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Check } from "lucide-react";
+import { Check, AlertTriangle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/projects/")({
@@ -18,8 +18,25 @@ function Projects() {
   const { t } = useI18n();
   const qc = useQueryClient();
 
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ["profile", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle();
+      return data;
+    },
+  });
+
+  const profileComplete = !!profile
+    && !!profile.full_name?.trim()
+    && !!profile.address?.trim()
+    && !!profile.bank_name?.trim()
+    && !!profile.bank_clearing?.trim()
+    && !!profile.bank_account?.trim();
+
   const { data: projects } = useQuery({
     queryKey: ["all-upcoming"],
+    enabled: profileComplete,
     queryFn: async () => {
       const { data, error } = await supabase.from("projects").select("*")
         .gte("starts_at", new Date().toISOString())
@@ -31,7 +48,7 @@ function Projects() {
 
   const { data: interests } = useQuery({
     queryKey: ["my-interests-ids", user?.id],
-    enabled: !!user,
+    enabled: !!user && profileComplete,
     queryFn: async () => {
       const { data } = await supabase.from("project_interests").select("project_id").eq("user_id", user!.id);
       return new Set((data ?? []).map((i) => i.project_id));
@@ -57,6 +74,24 @@ function Projects() {
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  if (!profileLoading && !profileComplete) {
+    return (
+      <main className="max-w-5xl mx-auto px-6 md:px-10 py-10">
+        <header className="mb-8">
+          <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">{t("projects_kicker")}</span>
+          <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight">{t("nav_projects")}</h1>
+        </header>
+        <div className="bg-card border border-border rounded-xl p-8 text-center">
+          <AlertTriangle className="h-10 w-10 text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground mb-6">{t("profile_incomplete_title")}</p>
+          <Button asChild>
+            <Link to="/profile">{t("profile_incomplete_cta")}</Link>
+          </Button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-5xl mx-auto px-6 md:px-10 py-10">

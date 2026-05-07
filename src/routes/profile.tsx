@@ -30,13 +30,33 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
-import { Loader2, Trash2, Upload, X, ShieldAlert } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, Trash2, Upload, X, ShieldAlert, Award } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   component: () => <RequireAuth><Profile /></RequireAuth>,
 });
 
 const CLOTHING_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"] as const;
+
+const CERT_KEYS = ["b_license", "forklift", "serving_permit", "hot_works"] as const;
+type CertKey = (typeof CERT_KEYS)[number];
+
+function parseCerts(raw: string | null | undefined): Record<CertKey, boolean> {
+  const base: Record<CertKey, boolean> = { b_license: false, forklift: false, serving_permit: false, hot_works: false };
+  if (!raw) return base;
+  try {
+    const parsed = JSON.parse(raw);
+    for (const k of CERT_KEYS) if (parsed[k] === true) base[k] = true;
+  } catch {
+    // ignore legacy free-text
+  }
+  return base;
+}
+
+function serializeCerts(certs: Record<CertKey, boolean>): string {
+  return JSON.stringify(certs);
+}
 
 type ProfileForm = {
   full_name: string;
@@ -85,6 +105,9 @@ function Profile() {
   const [code, setCode] = useState("");
   const [deleteReason, setDeleteReason] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [certs, setCerts] = useState<Record<CertKey, boolean>>({ b_license: false, forklift: false, serving_permit: false, hot_works: false });
+  const [gdprConsent, setGdprConsent] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profile } = useQuery({
@@ -132,19 +155,46 @@ function Profile() {
       bank_clearing: profile.bank_clearing ?? "",
       bank_account: profile.bank_account ?? "",
     });
+    setCerts(parseCerts(profile.drivers_license));
     const rawSkills = profile.skills ?? profile.special_skills;
     setSkills(Array.isArray(rawSkills) ? rawSkills : []);
   }, [profile]);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.user_metadata?.gdpr_consent) setGdprConsent(true);
+    });
+  }, [user]);
+
   const setField = <K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) =>
     setForm((p) => ({ ...p, [key]: value }));
 
+  function validateForm(): boolean {
+    const errors: Record<string, string> = {};
+    if (form.phone && !/^07\d{8}$/.test(form.phone.replace(/\s|-/g, ""))) {
+      errors.phone = t("validation_phone_format");
+    }
+    if (form.bank_clearing && !/^\d{4,5}$/.test(form.bank_clearing.replace(/\s|-/g, ""))) {
+      errors.bank_clearing = t("validation_bank_clearing");
+    }
+    if (form.bank_account && !/^\d{1,15}$/.test(form.bank_account.replace(/\s|-/g, ""))) {
+      errors.bank_account = t("validation_bank_account");
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   const save = useMutation({
     mutationFn: async () => {
+      if (!gdprConsent) {
+        await supabase.auth.updateUser({ data: { gdpr_consent: true, gdpr_consent_at: new Date().toISOString() } });
+      }
       const { error } = await supabase
         .from("profiles")
         .update({
           ...form,
+          drivers_license: serializeCerts(certs),
           skills,
           special_skills: skills,
           updated_at: new Date().toISOString(),
@@ -153,6 +203,7 @@ function Profile() {
       if (error) throw error;
     },
     onSuccess: () => {
+      setGdprConsent(true);
       toast.success(t("save"));
       qc.invalidateQueries({ queryKey: ["profile"] });
     },
@@ -330,6 +381,11 @@ function Profile() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          if (!validateForm()) return;
+          if (!gdprConsent) {
+            toast.error(t("gdpr_consent_required"));
+            return;
+          }
           save.mutate();
         }}
         className="space-y-6"
@@ -343,7 +399,7 @@ function Profile() {
             <Field label={t("full_name")} value={form.full_name} onChange={(v) => setField("full_name", v)} />
             <Field label={t("personal_id")} value={form.personal_id} onChange={(v) => setField("personal_id", v)} />
             <Field label={t("email")} type="email" value={form.email} onChange={(v) => setField("email", v)} />
-            <Field label={t("phone")} value={form.phone} onChange={(v) => setField("phone", v)} />
+            <Field label={t("phone")} value={form.phone} onChange={(v) => setField("phone", v)} error={validationErrors.phone} />
             <div className="md:col-span-2">
               <Field label={t("address")} value={form.address} onChange={(v) => setField("address", v)} />
             </div>
@@ -429,11 +485,6 @@ function Profile() {
           </legend>
           <div className="grid md:grid-cols-2 gap-5 mt-3">
             <Field label={t("occupation")} value={form.occupation} onChange={(v) => setField("occupation", v)} />
-            <Field
-              label={t("drivers_license")}
-              value={form.drivers_license}
-              onChange={(v) => setField("drivers_license", v)}
-            />
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">
                 {t("clothing_size")}
@@ -454,6 +505,25 @@ function Profile() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </fieldset>
+
+        {/* Certificates */}
+        <fieldset className="bg-card border border-border rounded-xl p-6">
+          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary px-2 -ml-2">
+            <Award className="inline h-4 w-4 mr-1 -mt-0.5" />
+            {t("group_certificates")}
+          </legend>
+          <div className="grid sm:grid-cols-2 gap-4 mt-3">
+            {CERT_KEYS.map((key) => (
+              <label key={key} className="flex items-center gap-3 cursor-pointer">
+                <Checkbox
+                  checked={certs[key]}
+                  onCheckedChange={(v) => setCerts((prev) => ({ ...prev, [key]: !!v }))}
+                />
+                <span className="text-sm">{t(`cert_${key}` as any)}</span>
+              </label>
+            ))}
           </div>
         </fieldset>
 
@@ -486,17 +556,38 @@ function Profile() {
             <Field
               label={t("bank_clearing")}
               value={form.bank_clearing}
-              onChange={(v) => setField("bank_clearing", v)}
+              onChange={(v) => setField("bank_clearing", v.replace(/\D/g, "").slice(0, 5))}
+              inputMode="numeric"
+              error={validationErrors.bank_clearing}
             />
             <div className="md:col-span-2">
               <Field
                 label={t("bank_account")}
                 value={form.bank_account}
-                onChange={(v) => setField("bank_account", v)}
+                onChange={(v) => setField("bank_account", v.replace(/\D/g, "").slice(0, 15))}
+                inputMode="numeric"
+                error={validationErrors.bank_account}
               />
             </div>
           </div>
         </fieldset>
+
+        {/* GDPR Consent */}
+        <div className="bg-card border border-border rounded-xl p-6">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <Checkbox
+              checked={gdprConsent}
+              onCheckedChange={(v) => setGdprConsent(!!v)}
+              className="mt-0.5"
+            />
+            <span className="text-sm leading-relaxed">
+              {t("gdpr_consent_label")}{" "}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                {t("privacy_policy_link")}
+              </a>
+            </span>
+          </label>
+        </div>
 
         <div className="flex justify-end">
           <Button type="submit" disabled={save.isPending}>
@@ -600,16 +691,27 @@ function Field({
   value,
   onChange,
   type = "text",
+  inputMode,
+  error,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
+  inputMode?: "numeric" | "tel" | "text";
+  error?: string;
 }) {
   return (
     <div>
       <Label className="text-xs uppercase tracking-wider text-muted-foreground">{label}</Label>
-      <Input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="mt-1" />
+      <Input
+        type={type}
+        inputMode={inputMode}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`mt-1 ${error ? "border-destructive" : ""}`}
+      />
+      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
     </div>
   );
 }
