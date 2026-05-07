@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -23,6 +24,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [gdprConsent, setGdprConsent] = useState(false);
 
   useEffect(() => {
     if (user) nav({ to: "/profile" });
@@ -40,12 +42,16 @@ function AuthPage() {
 
   const signUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!gdprConsent) {
+      toast.error(t("gdpr_consent_required"));
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
       options: {
         emailRedirectTo: `${window.location.origin}/profile`,
-        data: { full_name: fullName },
+        data: { full_name: fullName, gdpr_consent: true, gdpr_consent_at: new Date().toISOString() },
       },
     });
     setLoading(false);
@@ -79,6 +85,19 @@ function AuthPage() {
                 <div><Label>{t("full_name")}</Label><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} /></div>
                 <div><Label>{t("email")}</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
                 <div><Label>{t("password")}</Label><Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <Checkbox
+                    checked={gdprConsent}
+                    onCheckedChange={(v) => setGdprConsent(!!v)}
+                    className="mt-0.5"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    {t("gdpr_consent_label")}{" "}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                      {t("privacy_policy_link")}
+                    </a>
+                  </span>
+                </label>
                 <Button type="submit" className="w-full" disabled={loading}>{loading ? "..." : t("signup")}</Button>
               </form>
             </TabsContent>
