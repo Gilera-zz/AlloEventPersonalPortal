@@ -64,9 +64,9 @@ function Index() {
 
         <section className="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-6">
           {[
-            { icon: Briefcase, t: lang === "sv" ? "Bläddra bland projekt" : "Browse projects", d: lang === "sv" ? "Se kommande event och uppdrag." : "See upcoming events and assignments." },
-            { icon: Users, t: lang === "sv" ? "Anmäl ditt intresse" : "Express your interest", d: lang === "sv" ? "Markera intresse för pass som passar dig." : "Mark interest for shifts that suit you." },
-            { icon: Calendar, t: lang === "sv" ? "Hantera tillgänglighet" : "Manage availability", d: lang === "sv" ? "Berätta när du är ledig." : "Tell us when you are available." },
+            { icon: Briefcase, t: lang === "sv" ? "Bläddra bland projekt" : "Browse Projects", d: lang === "sv" ? "Se kommande event och uppdrag." : "See upcoming events and assignments." },
+            { icon: Users, t: lang === "sv" ? "Anmäl ditt intresse" : "Register Interest", d: lang === "sv" ? "Markera intresse för pass som passar dig." : "Mark your interest for shifts that suit you." },
+            { icon: Calendar, t: lang === "sv" ? "Min tillgänglighet" : "My Availability", d: lang === "sv" ? "Uppdatera ditt schema för att få matchande jobbförslag." : "Update your schedule to receive matching job offers." },
           ].map((f) => (
             <div key={f.t} className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-colors">
               <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4">
