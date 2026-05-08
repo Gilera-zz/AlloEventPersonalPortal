@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { LangToggle } from "@/components/LangToggle";
 import { Button } from "@/components/ui/button";
-import { Home, Briefcase, User, LogOut, Menu, X, ShieldCheck, CalendarDays, ListChecks, ExternalLink } from "lucide-react";
+import { Home, LayoutDashboard, Briefcase, User, LogOut, Menu, X, ShieldCheck, CalendarDays, ListChecks } from "lucide-react";
 import logo from "@/assets/allo-logo.png";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useMyProfile } from "@/hooks/useMyProfile";
@@ -18,7 +18,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   const links = [
-    { to: "/dashboard", label: t("nav_start"), icon: Home },
+    { to: "/", label: t("nav_portal_home"), icon: Home },
+    { to: "/dashboard", label: t("nav_start"), icon: LayoutDashboard },
     { to: "/projects", label: t("nav_projects"), icon: Briefcase },
     { to: "/my-projects", label: t("nav_my_projects"), icon: ListChecks },
     { to: "/availability", label: t("nav_availability"), icon: CalendarDays },
@@ -26,7 +27,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     ...(isAdmin ? [{ to: "/admin/projects", label: t("nav_admin"), icon: ShieldCheck }] : []),
   ];
 
-  const isActive = (to: string) => path === to || path.startsWith(to + "/");
+  const isActive = (to: string) => to === "/" ? path === "/" : path === to || path.startsWith(to + "/");
 
   const displayName = profile?.full_name?.trim().split(/\s+/)[0] || "User";
 
@@ -40,6 +41,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <span className="mt-2 text-[10px] font-mono uppercase tracking-[0.35em] text-primary/80">
           PORTAL
         </span>
+        <a
+          href="https://alloevent.se"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 flex items-center justify-center gap-2 w-full rounded-md border border-primary/25 bg-transparent px-3 py-2 text-xs font-medium text-primary/70 hover:text-primary hover:border-primary/45 hover:bg-white/[0.03] transition-all"
+        >
+          {t("nav_to_alloevent")} ↗
+        </a>
       </div>
 
       {/* Navigation */}
@@ -70,7 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         })}
       </nav>
 
-      {/* Bottom: profile + lang + logout + main website */}
+      {/* Bottom: profile + lang + logout */}
       <div className="px-4 pb-5 pt-3 border-t border-white/[0.06]">
         <div className="flex items-center gap-3 px-1 mb-3">
           <UserAvatar
@@ -93,18 +102,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <LogOut className="h-4 w-4" strokeWidth={1.5} />
           </button>
         </div>
-        <div className="flex items-center justify-between px-1 mb-3">
+        <div className="flex items-center justify-between px-1">
           <LangToggle />
         </div>
-        <a
-          href="https://alloevent.se"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full rounded-full border border-primary/30 bg-transparent px-3 py-2 text-sm text-primary/80 hover:text-primary hover:border-primary/50 transition-colors"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-          {t("nav_main_website")} ↗
-        </a>
       </div>
     </div>
   );
