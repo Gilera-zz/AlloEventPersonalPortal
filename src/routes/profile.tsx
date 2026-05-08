@@ -175,6 +175,9 @@ function Profile() {
     if (form.phone && !/^07\d{8}$/.test(form.phone.replace(/\s|-/g, ""))) {
       errors.phone = t("validation_phone_format");
     }
+    if (form.emergency_contact_phone && !/^07\d{8}$/.test(form.emergency_contact_phone.replace(/\s|-/g, ""))) {
+      errors.emergency_contact_phone = t("validation_phone_format");
+    }
     if (form.bank_clearing && !/^\d{4,5}$/.test(form.bank_clearing.replace(/\s|-/g, ""))) {
       errors.bank_clearing = t("validation_bank_clearing");
     }
@@ -542,6 +545,7 @@ function Profile() {
               label={t("emergency_contact_phone")}
               value={form.emergency_contact_phone}
               onChange={(v) => setField("emergency_contact_phone", v)}
+              error={validationErrors.emergency_contact_phone}
             />
           </div>
         </fieldset>

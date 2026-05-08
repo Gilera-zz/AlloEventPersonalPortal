@@ -70,7 +70,7 @@ function Dashboard() {
   return (
     <div className="px-6 md:px-10 py-10 max-w-5xl mx-auto">
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-2xl border border-border mb-12">
+      <section className="relative overflow-hidden rounded-xl border border-border mb-12">
         <img src={hero} alt="" width={1600} height={900} className="w-full h-56 md:h-72 object-cover opacity-50" />
         <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
         <div className="absolute bottom-0 left-0 p-6 md:p-10">
