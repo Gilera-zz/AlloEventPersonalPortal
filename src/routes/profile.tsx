@@ -27,11 +27,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { UserAvatar } from "@/components/UserAvatar";
-import { useState, useEffect, useRef, type ChangeEvent } from "react";
+import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Trash2, Upload, X, ShieldAlert, Award } from "lucide-react";
+import { Loader2, Trash2, Upload, X, ShieldAlert, Award, Check } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   component: () => <RequireAuth><Profile /></RequireAuth>,
@@ -116,7 +116,20 @@ function Profile() {
   const [certs, setCerts] = useState<Record<CertKey, boolean>>({ b_license: false, forklift: false, serving_permit: false, hot_works: false });
   const [gdprConsent, setGdprConsent] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const initialLoadDone = useRef(false);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const immediateRef = useRef(false);
+  const gdprSetRef = useRef(false);
+
+  const formRef = useRef(form);
+  formRef.current = form;
+  const certsRef = useRef(certs);
+  certsRef.current = certs;
+  const skillsRef = useRef(skills);
+  skillsRef.current = skills;
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -145,10 +158,11 @@ function Profile() {
   });
 
   useEffect(() => {
-    if (!profile) return;
+    if (!profile || initialLoadDone.current) return;
+    initialLoadDone.current = true;
     setForm({
       full_name: profile.full_name ?? "",
-      personal_id: profile.personal_id ?? "",
+      personal_id: profile.personal_id || generatePersonalId(),
       email: profile.email ?? "",
       phone: profile.phone ?? "",
       address: profile.address ?? "",
@@ -171,57 +185,70 @@ function Profile() {
   useEffect(() => {
     if (!user) return;
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.user_metadata?.gdpr_consent) setGdprConsent(true);
+      if (data.user?.user_metadata?.gdpr_consent) {
+        setGdprConsent(true);
+        gdprSetRef.current = true;
+      }
     });
   }, [user]);
 
-  const setField = <K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) =>
-    setForm((p) => ({ ...p, [key]: value }));
+  const doAutoSave = useCallback(async () => {
+    if (!user) return;
+    const f = formRef.current;
+    const c = certsRef.current;
+    const s = skillsRef.current;
 
-  function validateForm(): boolean {
-    const errors: Record<string, string> = {};
-    if (form.phone && !/^07\d{8}$/.test(form.phone.replace(/\s|-/g, ""))) {
-      errors.phone = t("validation_phone_format");
-    }
-    if (form.ice_phone && !/^07\d{8}$/.test(form.ice_phone.replace(/\s|-/g, ""))) {
-      errors.ice_phone = t("validation_phone_format");
-    }
-    if (form.bank_clearing && !/^\d{4,5}$/.test(form.bank_clearing.replace(/\s|-/g, ""))) {
-      errors.bank_clearing = t("validation_bank_clearing");
-    }
-    if (form.bank_account && !/^\d{1,15}$/.test(form.bank_account.replace(/\s|-/g, ""))) {
-      errors.bank_account = t("validation_bank_account");
-    }
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  }
+    if (f.phone && !/^07\d{8}$/.test(f.phone.replace(/\s|-/g, ""))) return;
+    if (f.ice_phone && !/^07\d{8}$/.test(f.ice_phone.replace(/\s|-/g, ""))) return;
+    if (f.bank_clearing && !/^\d{4,5}$/.test(f.bank_clearing.replace(/\s|-/g, ""))) return;
+    if (f.bank_account && !/^\d{1,15}$/.test(f.bank_account.replace(/\s|-/g, ""))) return;
 
-  const save = useMutation({
-    mutationFn: async () => {
-      if (!gdprConsent) {
+    setSaveStatus("saving");
+    try {
+      if (!gdprSetRef.current) {
         await supabase.auth.updateUser({ data: { gdpr_consent: true, gdpr_consent_at: new Date().toISOString() } });
+        gdprSetRef.current = true;
       }
-      const personalId = form.personal_id.trim() || generatePersonalId();
       const { error } = await supabase
         .from("profiles")
         .update({
-          ...form,
-          personal_id: personalId,
-          drivers_license: serializeCerts(certs),
-          skills,
-          special_skills: skills,
+          ...f,
+          drivers_license: serializeCerts(c),
+          skills: s,
+          special_skills: s,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", user!.id);
+        .eq("id", user.id);
       if (error) throw error;
-    },
-    onSuccess: () => {
-      setGdprConsent(true);
-      toast.success(t("save"));
-      qc.invalidateQueries({ queryKey: ["profile"] });
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
+      setSaveStatus("saved");
+      clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch (err: any) {
+      setSaveStatus("idle");
+      toast.error(err.message);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!initialLoadDone.current || !gdprConsent || !user) return;
+
+    clearTimeout(debounceTimer.current);
+    const delay = immediateRef.current ? 0 : 500;
+    immediateRef.current = false;
+
+    debounceTimer.current = setTimeout(doAutoSave, delay);
+    return () => clearTimeout(debounceTimer.current);
+  }, [form, certs, skills, gdprConsent, doAutoSave, user]);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(debounceTimer.current);
+      clearTimeout(savedTimer.current);
+    };
+  }, []);
+
+  const setField = <K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) =>
+    setForm((p) => ({ ...p, [key]: value }));
 
   const redeem = useMutation({
     mutationFn: async () => {
@@ -328,9 +355,23 @@ function Profile() {
   return (
     <main className="max-w-3xl mx-auto px-6 md:px-10 py-10">
       <header className="mb-8">
-        <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">
-          {t("my_page_kicker")}
-        </span>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">
+            {t("my_page_kicker")}
+          </span>
+          {saveStatus !== "idle" && (
+            <div className={`flex items-center gap-2 text-sm transition-opacity ${
+              saveStatus === "saving" ? "text-muted-foreground" : "text-green-500"
+            }`}>
+              {saveStatus === "saving" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Check className="h-3.5 w-3.5" />
+              )}
+              <span>{saveStatus === "saving" ? t("saving") : t("saved")}</span>
+            </div>
+          )}
+        </div>
         <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight">{t("my_page_title")}</h1>
         <p className="text-muted-foreground mt-2">{t("my_page_sub")}</p>
       </header>
@@ -391,18 +432,7 @@ function Profile() {
         </div>
       </section>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!validateForm()) return;
-          if (!gdprConsent) {
-            toast.error(t("gdpr_consent_required"));
-            return;
-          }
-          save.mutate();
-        }}
-        className="space-y-6"
-      >
+      <div className="space-y-6">
         {/* Personal */}
         <fieldset className="bg-card border border-border rounded-xl p-6">
           <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary px-2 -ml-2">
@@ -507,7 +537,10 @@ function Profile() {
               </Label>
               <Select
                 value={form.clothing_size || undefined}
-                onValueChange={(v) => setField("clothing_size", v)}
+                onValueChange={(v) => {
+                  immediateRef.current = true;
+                  setField("clothing_size", v);
+                }}
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="—" />
@@ -535,7 +568,10 @@ function Profile() {
               <label key={key} className="flex items-center gap-3 cursor-pointer">
                 <Checkbox
                   checked={certs[key]}
-                  onCheckedChange={(v) => setCerts((prev) => ({ ...prev, [key]: !!v }))}
+                  onCheckedChange={(v) => {
+                    immediateRef.current = true;
+                    setCerts((prev) => ({ ...prev, [key]: !!v }));
+                  }}
                 />
                 <span className="text-sm">{t(`cert_${key}` as any)}</span>
               </label>
@@ -594,7 +630,10 @@ function Profile() {
           <label className="flex items-start gap-3 cursor-pointer">
             <Checkbox
               checked={gdprConsent}
-              onCheckedChange={(v) => setGdprConsent(!!v)}
+              onCheckedChange={(v) => {
+                immediateRef.current = true;
+                setGdprConsent(!!v);
+              }}
               className="mt-0.5"
             />
             <span className="text-sm leading-relaxed">
@@ -605,13 +644,7 @@ function Profile() {
             </span>
           </label>
         </div>
-
-        <div className="flex justify-end">
-          <Button type="submit" disabled={save.isPending}>
-            {save.isPending ? t("saving") : t("save")}
-          </Button>
-        </div>
-      </form>
+      </div>
 
       {!isAdmin && (
         <section className="mt-10 bg-card border border-border rounded-xl p-6">
