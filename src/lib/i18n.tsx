@@ -15,6 +15,7 @@ const dict = {
   nav_about: { sv: "Om oss", en: "About" },
   nav_main_site: { sv: "Till huvudwebbplatsen", en: "Back to main site" },
   nav_portal_home: { sv: "Portalens startsida", en: "Portal home" },
+  nav_main_website: { sv: "Huvudwebbplats", en: "Main website" },
 
   // Common
   loading: { sv: "Laddar…", en: "Loading…" },
