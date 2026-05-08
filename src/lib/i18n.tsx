@@ -94,8 +94,8 @@ const dict = {
   },
   special_skills: { sv: "Specialkompetenser", en: "Special skills" },
   special_skills_help: {
-    sv: "Lägg till en kompetens och tryck Enter (t.ex. Servering, Ljudteknik, Truckkort).",
-    en: "Add a skill and press Enter (e.g. Service, Sound engineering, Forklift).",
+    sv: "Vilka är dina främsta kompetenser? Skriv och tryck Enter (t.ex. Servering, Ljudteknik, Scenbygge).",
+    en: "What are your top skills? Type and press Enter (e.g. Service, Sound engineering, Stage building).",
   },
   add_skill: { sv: "Lägg till", en: "Add" },
   remove: { sv: "Ta bort", en: "Remove" },
@@ -239,6 +239,10 @@ const dict = {
   gdpr_consent_required: {
     sv: "Du måste godkänna villkoren för att fortsätta.",
     en: "You must accept the terms to continue.",
+  },
+  gdpr_footer: {
+    sv: "Vi värnar om din integritet. För registerutdrag eller begäran om radering enligt GDPR, kontakta oss på info@alloevent.se.",
+    en: "We care about your privacy. For data access requests or deletion requests under GDPR, contact us at info@alloevent.se.",
   },
   privacy_policy_link: { sv: "Integritetspolicy", en: "Privacy policy" },
   privacy_page_title: { sv: "Integritetspolicy", en: "Privacy Policy" },

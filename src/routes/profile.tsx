@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -30,7 +29,6 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Trash2, Upload, X, ShieldAlert, Award, Check } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
@@ -114,7 +112,6 @@ function Profile() {
   const [deleteReason, setDeleteReason] = useState("");
   const [uploading, setUploading] = useState(false);
   const [certs, setCerts] = useState<Record<CertKey, boolean>>({ b_license: false, forklift: false, serving_permit: false, hot_works: false });
-  const [gdprConsent, setGdprConsent] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -186,7 +183,6 @@ function Profile() {
     if (!user) return;
     supabase.auth.getUser().then(({ data }) => {
       if (data.user?.user_metadata?.gdpr_consent) {
-        setGdprConsent(true);
         gdprSetRef.current = true;
       }
     });
@@ -230,7 +226,7 @@ function Profile() {
   }, [user]);
 
   useEffect(() => {
-    if (!initialLoadDone.current || !gdprConsent || !user) return;
+    if (!initialLoadDone.current || !user) return;
 
     clearTimeout(debounceTimer.current);
     const delay = immediateRef.current ? 0 : 500;
@@ -238,7 +234,7 @@ function Profile() {
 
     debounceTimer.current = setTimeout(doAutoSave, delay);
     return () => clearTimeout(debounceTimer.current);
-  }, [form, certs, skills, gdprConsent, doAutoSave, user]);
+  }, [form, certs, skills, doAutoSave, user]);
 
   useEffect(() => {
     return () => {
@@ -487,36 +483,35 @@ function Profile() {
                 {t("special_skills")}
               </Label>
               <p className="text-xs text-muted-foreground mt-1">{t("special_skills_help")}</p>
-              <div className="flex gap-2 mt-2">
-                <Input
-                  value={skillInput}
-                  onChange={(e) => setSkillInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addSkill();
-                    }
-                  }}
-                  placeholder="Servering"
-                />
-                <Button type="button" variant="secondary" onClick={addSkill}>
-                  {t("add_skill")}
-                </Button>
-              </div>
+              <Input
+                value={skillInput}
+                onChange={(e) => setSkillInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addSkill();
+                  }
+                }}
+                placeholder="Servering"
+                className="mt-2"
+              />
               {skills.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
                   {skills.map((s) => (
-                    <Badge key={s} variant="secondary" className="pl-3 pr-1 py-1 gap-1">
+                    <span
+                      key={s}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-sm font-medium text-primary-foreground"
+                    >
                       {s}
                       <button
                         type="button"
                         aria-label={`${t("remove")} ${s}`}
                         onClick={() => setSkills((p) => p.filter((x) => x !== s))}
-                        className="ml-1 rounded-full hover:bg-background/50 p-0.5"
+                        className="rounded-full hover:bg-black/20 p-0.5 transition-colors"
                       >
                         <X className="h-3 w-3" />
                       </button>
-                    </Badge>
+                    </span>
                   ))}
                 </div>
               )}
@@ -563,19 +558,28 @@ function Profile() {
             <Award className="inline h-4 w-4 mr-1 -mt-0.5" />
             {t("group_certificates")}
           </legend>
-          <div className="grid sm:grid-cols-2 gap-4 mt-3">
-            {CERT_KEYS.map((key) => (
-              <label key={key} className="flex items-center gap-3 cursor-pointer">
-                <Checkbox
-                  checked={certs[key]}
-                  onCheckedChange={(v) => {
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+            {CERT_KEYS.map((key) => {
+              const selected = certs[key];
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
                     immediateRef.current = true;
-                    setCerts((prev) => ({ ...prev, [key]: !!v }));
+                    setCerts((prev) => ({ ...prev, [key]: !prev[key] }));
                   }}
-                />
-                <span className="text-sm">{t(`cert_${key}` as any)}</span>
-              </label>
-            ))}
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-all cursor-pointer ${
+                    selected
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary border border-border text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {selected && <Check className="h-3.5 w-3.5 shrink-0" />}
+                  {t(`cert_${key}` as any)}
+                </button>
+              );
+            })}
           </div>
         </fieldset>
 
@@ -625,25 +629,6 @@ function Profile() {
           </div>
         </fieldset>
 
-        {/* GDPR Consent */}
-        <div className="bg-card border border-border rounded-xl p-6">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <Checkbox
-              checked={gdprConsent}
-              onCheckedChange={(v) => {
-                immediateRef.current = true;
-                setGdprConsent(!!v);
-              }}
-              className="mt-0.5"
-            />
-            <span className="text-sm leading-relaxed">
-              {t("gdpr_consent_label")}{" "}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80">
-                {t("privacy_policy_link")}
-              </a>
-            </span>
-          </label>
-        </div>
       </div>
 
       {!isAdmin && (
@@ -732,6 +717,13 @@ function Profile() {
           )}
         </div>
       </section>
+
+      {/* GDPR footer */}
+      <footer className="mt-10 mb-6 text-center">
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {t("gdpr_footer")}
+        </p>
+      </footer>
     </main>
   );
 }
