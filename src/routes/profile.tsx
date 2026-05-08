@@ -49,13 +49,21 @@ function parseCerts(raw: string | null | undefined): Record<CertKey, boolean> {
     const parsed = JSON.parse(raw);
     for (const k of CERT_KEYS) if (parsed[k] === true) base[k] = true;
   } catch {
-    // ignore legacy free-text
+    const lower = raw.trim().toLowerCase();
+    if (lower === "ja" || lower === "yes" || lower === "true") {
+      base.b_license = true;
+    }
   }
   return base;
 }
 
 function serializeCerts(certs: Record<CertKey, boolean>): string {
   return JSON.stringify(certs);
+}
+
+function generatePersonalId(): string {
+  const num = Math.floor(1000 + Math.random() * 9000);
+  return `AE-${num}`;
 }
 
 type ProfileForm = {
@@ -193,10 +201,12 @@ function Profile() {
       if (!gdprConsent) {
         await supabase.auth.updateUser({ data: { gdpr_consent: true, gdpr_consent_at: new Date().toISOString() } });
       }
+      const personalId = form.personal_id.trim() || generatePersonalId();
       const { error } = await supabase
         .from("profiles")
         .update({
           ...form,
+          personal_id: personalId,
           drivers_license: serializeCerts(certs),
           skills,
           special_skills: skills,
@@ -400,7 +410,10 @@ function Profile() {
           </legend>
           <div className="grid md:grid-cols-2 gap-5 mt-3">
             <Field label={t("full_name")} value={form.full_name} onChange={(v) => setField("full_name", v)} />
-            <Field label={t("personal_id")} value={form.personal_id} onChange={(v) => setField("personal_id", v)} />
+            <div>
+              <Field label={t("personal_id")} value={form.personal_id} onChange={(v) => setField("personal_id", v)} placeholder="AE-XXXX" />
+              <p className="text-xs text-muted-foreground mt-1">{t("personal_id_auto_hint")}</p>
+            </div>
             <Field label={t("email")} type="email" value={form.email} onChange={(v) => setField("email", v)} />
             <Field label={t("phone")} value={form.phone} onChange={(v) => setField("phone", v)} error={validationErrors.phone} />
             <div className="md:col-span-2">
@@ -697,6 +710,7 @@ function Field({
   type = "text",
   inputMode,
   error,
+  placeholder,
 }: {
   label: string;
   value: string;
@@ -704,6 +718,7 @@ function Field({
   type?: string;
   inputMode?: "numeric" | "tel" | "text";
   error?: string;
+  placeholder?: string;
 }) {
   return (
     <div>
@@ -713,6 +728,7 @@ function Field({
         inputMode={inputMode}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
         className={`mt-1 ${error ? "border-destructive" : ""}`}
       />
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}

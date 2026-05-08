@@ -33,6 +33,24 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
+const CERT_KEYS = ["b_license", "forklift", "serving_permit", "hot_works"] as const;
+type CertKey = (typeof CERT_KEYS)[number];
+
+function parseCerts(raw: string | null | undefined): Record<CertKey, boolean> {
+  const base: Record<CertKey, boolean> = { b_license: false, forklift: false, serving_permit: false, hot_works: false };
+  if (!raw) return base;
+  try {
+    const parsed = JSON.parse(raw);
+    for (const k of CERT_KEYS) if (parsed[k] === true) base[k] = true;
+  } catch {
+    const lower = raw.trim().toLowerCase();
+    if (lower === "ja" || lower === "yes" || lower === "true") {
+      base.b_license = true;
+    }
+  }
+  return base;
+}
+
 export const Route = createFileRoute("/admin/projects")({
   component: () => <RequireAuth requireAdmin><AdminProjects /></RequireAuth>,
 });
@@ -409,19 +427,27 @@ function ApplicantProfileModal({
           </section>
 
           {(profile?.clothing_size || profile?.drivers_license) && (
-            <section className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
+            <section className="pt-2 border-t border-border space-y-3">
               {profile?.clothing_size && (
                 <div>
                   <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{t("clothing_size")}</div>
                   <div className="text-sm font-medium mt-0.5">{profile.clothing_size}</div>
                 </div>
               )}
-              {profile?.drivers_license && (
-                <div>
-                  <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{t("drivers_license")}</div>
-                  <div className="text-sm font-medium mt-0.5">{profile.drivers_license}</div>
-                </div>
-              )}
+              {profile?.drivers_license && (() => {
+                const certs = parseCerts(profile.drivers_license);
+                const activeCerts = CERT_KEYS.filter((k) => certs[k]);
+                return activeCerts.length > 0 ? (
+                  <div>
+                    <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{t("group_certificates")}</div>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {activeCerts.map((k) => (
+                        <Badge key={k} variant="secondary" className="text-xs">{t(`cert_${k}` as any)}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+              })()}
             </section>
           )}
         </div>
