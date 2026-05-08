@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { LangToggle } from "@/components/LangToggle";
-import { ArrowRight, Briefcase, Calendar, Users } from "lucide-react";
+import { ArrowRight, Briefcase, Calendar, Users, ExternalLink } from "lucide-react";
 import logo from "@/assets/allo-logo.png";
 import hero from "@/assets/hero-event.jpg";
 
@@ -23,6 +23,15 @@ function Index() {
             <img src={logo} alt="Allo Event" className="h-9 w-auto" />
           </Link>
           <div className="flex items-center gap-3">
+            <a
+              href="https://alloevent.se"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              {t("nav_main_site")}
+            </a>
             <LangToggle />
             {user ? (
               <Button asChild size="sm"><Link to="/dashboard">{t("nav_start")} <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
