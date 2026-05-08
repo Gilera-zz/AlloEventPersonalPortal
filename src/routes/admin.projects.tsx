@@ -253,7 +253,6 @@ function useApplicants(projectId: string) {
 
 function ApplicantsPanel({ projectId }: { projectId: string }) {
   const { t } = useI18n();
-  const { isAdmin } = useAuth();
   const qc = useQueryClient();
   const [profileOpen, setProfileOpen] = useState<ApplicantProfile | null>(null);
 
@@ -271,14 +270,9 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
   return (
     <div>
       <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-3">{t("applicants")}</div>
-      {!isAdmin && (
-        <p className="text-sm text-destructive mb-2">
-          DEBUG: nuvarande användare saknar admin-rollen — RLS kan blockera hämtningen.
-        </p>
-      )}
       {queryError && (
         <p className="text-sm text-destructive mb-2 break-words">
-          DEBUG fel: {queryError.message}
+          {queryError.message}
         </p>
       )}
       {isLoading && <p className="text-sm text-muted-foreground">{t("loading")}</p>}

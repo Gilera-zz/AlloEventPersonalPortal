@@ -21,6 +21,7 @@ const dict = {
   loading: { sv: "Laddar…", en: "Loading…" },
   back: { sv: "Tillbaka", en: "Back" },
   save: { sv: "Spara ändringar", en: "Save changes" },
+  saved: { sv: "Sparat", en: "Saved" },
   saving: { sv: "Sparar…", en: "Saving…" },
   cancel: { sv: "Avbryt", en: "Cancel" },
   read_more: { sv: "Läs mer", en: "Read more" },
