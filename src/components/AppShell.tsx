@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { LangToggle } from "@/components/LangToggle";
 import { Button } from "@/components/ui/button";
-import { Home, Briefcase, User, LogOut, Menu, X, ShieldCheck, CalendarDays, ListChecks, ExternalLink, Globe } from "lucide-react";
+import { Home, Briefcase, User, LogOut, Menu, X, ShieldCheck, CalendarDays, ListChecks, ExternalLink } from "lucide-react";
 import logo from "@/assets/allo-logo.png";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useMyProfile } from "@/hooks/useMyProfile";
@@ -30,31 +30,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const SidebarInner = (
     <div className="flex h-full flex-col">
-      <div className="px-3 pt-3">
-        <a
-          href="https://alloevent.se"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-          {t("nav_main_site")}
+      <div className="px-6 py-6 border-b border-border">
+        <a href="https://alloevent.se" target="_blank" rel="noopener noreferrer" className="flex items-center" onClick={() => setOpen(false)}>
+          <img src={logo} alt="Allo Event" className="h-10 w-auto" />
         </a>
-      </div>
-      <div className="px-6 py-5 border-b border-border">
-        <div className="flex items-center gap-3">
-          <Link to="/dashboard" className="flex items-center" onClick={() => setOpen(false)}>
-            <img src={logo} alt="Allo Event" className="h-9 w-auto" />
-          </Link>
-          <Link
-            to="/"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-            title={t("nav_portal_home")}
-          >
-            <Globe className="h-3.5 w-3.5" />
-          </Link>
-        </div>
         {user && (
           <div className="mt-5 flex items-center gap-3">
             <UserAvatar
@@ -92,8 +71,17 @@ export function AppShell({ children }: { children: ReactNode }) {
           );
         })}
       </nav>
-      <div className="p-3 border-t border-border space-y-2">
-        <div className="flex items-center justify-between px-2">
+      <div className="p-3 border-t border-border space-y-1">
+        <a
+          href="https://alloevent.se"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+        >
+          <ExternalLink className="h-4 w-4" />
+          {t("nav_main_website")}
+        </a>
+        <div className="flex items-center justify-between px-2 pt-1">
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Lang</span>
           <LangToggle />
         </div>
@@ -118,9 +106,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 border-b border-border bg-background/85 backdrop-blur flex items-center justify-between px-4">
-        <Link to="/dashboard" className="flex items-center gap-2">
+        <a href="https://alloevent.se" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
           <img src={logo} alt="Allo Event" className="h-7 w-auto" />
-        </Link>
+        </a>
         <div className="flex items-center gap-2">
           <LangToggle />
           {user && (
