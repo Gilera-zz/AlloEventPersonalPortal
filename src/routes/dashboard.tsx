@@ -52,7 +52,7 @@ function Dashboard() {
     queryKey: ["profile", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("full_name").eq("id", user!.id).maybeSingle();
+      const { data } = await supabase.from("profiles").select("full_name, personal_id").eq("id", user!.id).maybeSingle();
       return data;
     },
   });
@@ -78,6 +78,11 @@ function Dashboard() {
             <>
               <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">{t("hello")}</span>
               <h1 className="text-3xl md:text-4xl font-bold mt-2">{firstName || user?.email}</h1>
+              {profile?.personal_id && (
+                <span className="inline-block mt-2 text-[11px] font-mono uppercase tracking-[0.25em] text-primary/70 bg-primary/10 px-2 py-0.5 rounded">
+                  {profile.personal_id}
+                </span>
+              )}
             </>
           )}
           <p className="text-muted-foreground mt-2 max-w-xl text-sm">{t("welcome_body")}</p>

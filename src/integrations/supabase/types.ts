@@ -77,8 +77,8 @@ export type Database = {
           created_at: string
           drivers_license: string | null
           email: string | null
-          emergency_contact_name: string | null
-          emergency_contact_phone: string | null
+          ice_name: string | null
+          ice_phone: string | null
           experience: string | null
           full_name: string | null
           id: string
@@ -101,8 +101,8 @@ export type Database = {
           created_at?: string
           drivers_license?: string | null
           email?: string | null
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
+          ice_name?: string | null
+          ice_phone?: string | null
           experience?: string | null
           full_name?: string | null
           id: string
@@ -125,8 +125,8 @@ export type Database = {
           created_at?: string
           drivers_license?: string | null
           email?: string | null
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
+          ice_name?: string | null
+          ice_phone?: string | null
           experience?: string | null
           full_name?: string | null
           id?: string

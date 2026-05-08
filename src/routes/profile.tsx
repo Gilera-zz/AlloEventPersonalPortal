@@ -77,8 +77,8 @@ type ProfileForm = {
   occupation: string;
   drivers_license: string;
   clothing_size: string;
-  emergency_contact_name: string;
-  emergency_contact_phone: string;
+  ice_name: string;
+  ice_phone: string;
   bank_name: string;
   bank_clearing: string;
   bank_account: string;
@@ -95,8 +95,8 @@ const EMPTY_FORM: ProfileForm = {
   occupation: "",
   drivers_license: "",
   clothing_size: "",
-  emergency_contact_name: "",
-  emergency_contact_phone: "",
+  ice_name: "",
+  ice_phone: "",
   bank_name: "",
   bank_clearing: "",
   bank_account: "",
@@ -157,8 +157,8 @@ function Profile() {
       occupation: profile.occupation ?? "",
       drivers_license: profile.drivers_license ?? "",
       clothing_size: profile.clothing_size ?? "",
-      emergency_contact_name: profile.emergency_contact_name ?? "",
-      emergency_contact_phone: profile.emergency_contact_phone ?? "",
+      ice_name: profile.ice_name ?? "",
+      ice_phone: profile.ice_phone ?? "",
       bank_name: profile.bank_name ?? "",
       bank_clearing: profile.bank_clearing ?? "",
       bank_account: profile.bank_account ?? "",
@@ -183,8 +183,8 @@ function Profile() {
     if (form.phone && !/^07\d{8}$/.test(form.phone.replace(/\s|-/g, ""))) {
       errors.phone = t("validation_phone_format");
     }
-    if (form.emergency_contact_phone && !/^07\d{8}$/.test(form.emergency_contact_phone.replace(/\s|-/g, ""))) {
-      errors.emergency_contact_phone = t("validation_phone_format");
+    if (form.ice_phone && !/^07\d{8}$/.test(form.ice_phone.replace(/\s|-/g, ""))) {
+      errors.ice_phone = t("validation_phone_format");
     }
     if (form.bank_clearing && !/^\d{4,5}$/.test(form.bank_clearing.replace(/\s|-/g, ""))) {
       errors.bank_clearing = t("validation_bank_clearing");
@@ -550,15 +550,15 @@ function Profile() {
           </legend>
           <div className="grid md:grid-cols-2 gap-5 mt-3">
             <Field
-              label={t("emergency_contact_name")}
-              value={form.emergency_contact_name}
-              onChange={(v) => setField("emergency_contact_name", v)}
+              label={t("ice_name")}
+              value={form.ice_name}
+              onChange={(v) => setField("ice_name", v)}
             />
             <Field
-              label={t("emergency_contact_phone")}
-              value={form.emergency_contact_phone}
-              onChange={(v) => setField("emergency_contact_phone", v)}
-              error={validationErrors.emergency_contact_phone}
+              label={t("ice_phone")}
+              value={form.ice_phone}
+              onChange={(v) => setField("ice_phone", v)}
+              error={validationErrors.ice_phone}
             />
           </div>
         </fieldset>
