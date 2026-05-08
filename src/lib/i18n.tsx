@@ -98,8 +98,8 @@ const dict = {
   },
   add_skill: { sv: "Lägg till", en: "Add" },
   remove: { sv: "Ta bort", en: "Remove" },
-  emergency_contact_name: { sv: "Namn närmast anhörig", en: "Next-of-kin name" },
-  emergency_contact_phone: { sv: "Telefon närmast anhörig", en: "Next-of-kin phone" },
+  ice_name: { sv: "Namn närmast anhörig", en: "Next-of-kin name" },
+  ice_phone: { sv: "Telefon närmast anhörig", en: "Next-of-kin phone" },
   avatar_title: { sv: "Profilbild", en: "Profile picture" },
   avatar_help: {
     sv: "JPG eller PNG, max 2 MB. Bilden visas i menyn och på din profil.",
