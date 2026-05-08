@@ -13,6 +13,8 @@ const dict = {
   nav_logout: { sv: "Logga ut", en: "Log out" },
   nav_login: { sv: "Logga in", en: "Log in" },
   nav_about: { sv: "Om oss", en: "About" },
+  nav_main_site: { sv: "Till huvudwebbplatsen", en: "Back to main site" },
+  nav_portal_home: { sv: "Portalens startsida", en: "Portal home" },
 
   // Common
   loading: { sv: "Laddar…", en: "Loading…" },

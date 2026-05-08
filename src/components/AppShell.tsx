@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { LangToggle } from "@/components/LangToggle";
 import { Button } from "@/components/ui/button";
-import { Home, Briefcase, User, LogOut, Menu, X, ShieldCheck, CalendarDays, ListChecks } from "lucide-react";
+import { Home, Briefcase, User, LogOut, Menu, X, ShieldCheck, CalendarDays, ListChecks, ExternalLink, Globe } from "lucide-react";
 import logo from "@/assets/allo-logo.png";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useMyProfile } from "@/hooks/useMyProfile";
@@ -30,10 +30,31 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const SidebarInner = (
     <div className="flex h-full flex-col">
-      <div className="px-6 py-6 border-b border-border">
-        <Link to="/dashboard" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-          <img src={logo} alt="Allo Event" className="h-9 w-auto" />
-        </Link>
+      <div className="px-3 pt-3">
+        <a
+          href="https://alloevent.se"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          {t("nav_main_site")}
+        </a>
+      </div>
+      <div className="px-6 py-5 border-b border-border">
+        <div className="flex items-center gap-3">
+          <Link to="/dashboard" className="flex items-center" onClick={() => setOpen(false)}>
+            <img src={logo} alt="Allo Event" className="h-9 w-auto" />
+          </Link>
+          <Link
+            to="/"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+            title={t("nav_portal_home")}
+          >
+            <Globe className="h-3.5 w-3.5" />
+          </Link>
+        </div>
         {user && (
           <div className="mt-5 flex items-center gap-3">
             <UserAvatar
