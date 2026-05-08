@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
+import { localized } from "@/lib/translate";
 
 export const Route = createFileRoute("/projects/$projectId")({
   component: () => <RequireAuth><ProjectDetail /></RequireAuth>,
@@ -73,6 +74,12 @@ function ProjectDetail() {
 
   const isConfirmed = myInterest?.status === "confirmed";
 
+  const title = project ? (localized(project, "title", lang) ?? project.title) : "";
+  const description = project ? localized(project, "description", lang) : null;
+  const location = project ? localized(project, "location", lang) : null;
+  const dressCode = project ? localized(project, "dress_code", lang) : null;
+  const instructions = project ? localized(project, "staff_instructions", lang) : null;
+
   return (
     <main className="max-w-4xl mx-auto px-6 md:px-10 py-10">
       <Button asChild variant="ghost" size="sm" className="mb-6">
@@ -82,7 +89,7 @@ function ProjectDetail() {
       {project && (
         <article className="bg-card border border-border rounded-xl overflow-hidden">
           {project.image_url && (
-            <img src={project.image_url} alt={project.title} className="w-full h-72 md:h-96 object-cover" />
+            <img src={project.image_url} alt={title} className="w-full h-72 md:h-96 object-cover" />
           )}
           <div className="p-8 md:p-10">
             <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -90,7 +97,7 @@ function ProjectDetail() {
                 {project.category && (
                   <span className="px-2 py-1 bg-secondary text-muted-foreground rounded text-[10px] font-bold uppercase tracking-wider">{project.category}</span>
                 )}
-                <h1 className="text-3xl md:text-5xl font-bold mt-3 tracking-tight">{project.title}</h1>
+                <h1 className="text-3xl md:text-5xl font-bold mt-3 tracking-tight">{title}</h1>
               </div>
               {isConfirmed && (
                 <div className="inline-flex items-center gap-2 rounded-md bg-success/15 text-success border border-success/30 px-3 py-1.5 text-xs font-bold tracking-[0.2em]">
@@ -111,14 +118,14 @@ function ProjectDetail() {
                   </div>
                 </div>
               </div>
-              {project.location && (
+              {location && (
                 <div className="flex items-start gap-3 text-muted-foreground">
                   <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
                   <div>
                     <div className="text-[10px] font-mono uppercase tracking-widest">{t("location_label")}</div>
-                    <div className="text-foreground mt-0.5">{project.location}</div>
+                    <div className="text-foreground mt-0.5">{location}</div>
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.location)}`}
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.location ?? location)}`}
                       target="_blank" rel="noopener noreferrer"
                       className="text-primary text-xs inline-flex items-center gap-1 mt-1 hover:underline"
                     >
@@ -127,12 +134,12 @@ function ProjectDetail() {
                   </div>
                 </div>
               )}
-              {project.dress_code && (
+              {dressCode && (
                 <div className="flex items-start gap-3 text-muted-foreground">
                   <Shirt className="h-4 w-4 mt-0.5 text-primary shrink-0" />
                   <div>
                     <div className="text-[10px] font-mono uppercase tracking-widest">{t("dress_code")}</div>
-                    <div className="text-foreground mt-0.5">{project.dress_code}</div>
+                    <div className="text-foreground mt-0.5">{dressCode}</div>
                   </div>
                 </div>
               )}
@@ -147,10 +154,10 @@ function ProjectDetail() {
               )}
             </div>
 
-            {project.description && (
+            {description && (
               <div className="mt-10">
                 <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-3">{t("details")}</div>
-                <div className="text-muted-foreground whitespace-pre-line leading-relaxed">{project.description}</div>
+                <div className="text-muted-foreground whitespace-pre-line leading-relaxed">{description}</div>
               </div>
             )}
 
@@ -162,8 +169,8 @@ function ProjectDetail() {
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">{t("briefing_intro")}</p>
                 <div className="mt-4 whitespace-pre-line leading-relaxed text-sm">
-                  {project.staff_instructions
-                    ? project.staff_instructions
+                  {instructions
+                    ? instructions
                     : <span className="text-muted-foreground italic">{t("briefing_empty")}</span>}
                 </div>
               </section>

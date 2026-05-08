@@ -221,45 +221,60 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          description_en: string | null
           dress_code: string | null
+          dress_code_en: string | null
           ends_at: string | null
           id: string
           image_url: string | null
           location: string | null
+          location_en: string | null
           positions_needed: number | null
           staff_instructions: string | null
+          staff_instructions_en: string | null
           starts_at: string
           title: string
+          title_en: string | null
         }
         Insert: {
           category?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_en?: string | null
           dress_code?: string | null
+          dress_code_en?: string | null
           ends_at?: string | null
           id?: string
           image_url?: string | null
           location?: string | null
+          location_en?: string | null
           positions_needed?: number | null
           staff_instructions?: string | null
+          staff_instructions_en?: string | null
           starts_at: string
           title: string
+          title_en?: string | null
         }
         Update: {
           category?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_en?: string | null
           dress_code?: string | null
+          dress_code_en?: string | null
           ends_at?: string | null
           id?: string
           image_url?: string | null
           location?: string | null
+          location_en?: string | null
           positions_needed?: number | null
           staff_instructions?: string | null
+          staff_instructions_en?: string | null
           starts_at?: string
           title?: string
+          title_en?: string | null
         }
         Relationships: []
       }

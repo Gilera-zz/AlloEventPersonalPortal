@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { localized } from "@/lib/translate";
 import { format } from "date-fns";
 import { sv, enUS } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 interface ProjectLite {
-  id: string; title: string; starts_at: string; ends_at: string | null;
+  id: string; title: string; title_en?: string | null; starts_at: string; ends_at: string | null;
 }
 
 function Dashboard() {
@@ -27,7 +28,7 @@ function Dashboard() {
     queryKey: ["upcoming-projects"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("projects").select("id,title,starts_at,ends_at")
+        .from("projects").select("id,title,title_en,starts_at,ends_at")
         .gte("starts_at", new Date().toISOString())
         .order("starts_at");
       if (error) throw error;
@@ -41,7 +42,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("project_interests")
-        .select("status, projects(id,title,starts_at)")
+        .select("status, projects(id,title,title_en,starts_at)")
         .eq("user_id", user!.id);
       if (error) throw error;
       return data;
@@ -115,7 +116,7 @@ function Dashboard() {
                       className="flex items-center justify-between gap-4 py-3 group"
                     >
                       <span className="font-medium group-hover:text-primary transition-colors group-hover:translate-x-1 duration-200 transform inline-block">
-                        {p.title}
+                        {localized(p, "title", lang) ?? p.title}
                       </span>
                       <span className="text-xs text-muted-foreground font-mono shrink-0">
                         {format(new Date(p.starts_at), "d MMM", { locale })}
@@ -144,7 +145,7 @@ function Dashboard() {
                 <Link to="/projects/$projectId" params={{ projectId: m.projects.id }} className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-secondary/40 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
                     <span className={`h-2 w-2 rounded-full shrink-0 ${m.status === "confirmed" ? "bg-success" : "bg-yellow-500"}`} />
-                    <span className="font-medium truncate">{m.projects.title}</span>
+                    <span className="font-medium truncate">{localized(m.projects, "title", lang) ?? m.projects.title}</span>
                   </div>
                   {m.status === "confirmed" ? (
                     <span className="inline-flex items-center gap-1 rounded-md bg-success/15 text-success border border-success/30 px-2 py-0.5 text-[10px] font-bold tracking-[0.2em] shrink-0">

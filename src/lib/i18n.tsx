@@ -242,6 +242,12 @@ const dict = {
   privacy_policy_link: { sv: "Integritetspolicy", en: "Privacy policy" },
   privacy_page_title: { sv: "Integritetspolicy", en: "Privacy Policy" },
 
+  // Translation
+  generate_en: { sv: "Generera engelsk version med AI", en: "Generate English version with AI" },
+  generating_en: { sv: "Översätter…", en: "Translating…" },
+  translation_saved: { sv: "Engelska översättningar sparade", en: "English translations saved" },
+  translation_error: { sv: "Översättningen misslyckades", en: "Translation failed" },
+
   // Gatekeeping
   profile_incomplete_title: {
     sv: "Du behöver komplettera din profil innan du kan se och söka lediga uppdrag.",

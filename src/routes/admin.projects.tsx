@@ -30,6 +30,8 @@ import {
   Mail,
   Phone,
   Save,
+  Languages,
+  Loader2,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
@@ -77,6 +79,8 @@ interface ApplicantRow {
   created_at: string;
   profiles: ApplicantProfile | null;
 }
+
+const TRANSLATABLE_FIELDS = ["title", "description", "location", "dress_code", "staff_instructions"] as const;
 
 function AdminProjects() {
   const { user } = useAuth();
@@ -520,6 +524,7 @@ function BriefingPanel({ project }: { project: any }) {
   const { t } = useI18n();
   const qc = useQueryClient();
   const [text, setText] = useState<string>(project.staff_instructions ?? "");
+  const [translating, setTranslating] = useState(false);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -537,6 +542,61 @@ function BriefingPanel({ project }: { project: any }) {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const handleGenerateTranslations = async () => {
+    setTranslating(true);
+    try {
+      const fields: Record<string, string> = {};
+      for (const key of TRANSLATABLE_FIELDS) {
+        const val = project[key];
+        if (typeof val === "string" && val.trim().length > 0) {
+          const enKey = `${key}_en`;
+          if (!project[enKey] || (typeof project[enKey] === "string" && project[enKey].trim().length === 0)) {
+            fields[key] = val;
+          }
+        }
+      }
+
+      if (Object.keys(fields).length === 0) {
+        toast.success(t("translation_saved"));
+        setTranslating(false);
+        return;
+      }
+
+      const res = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fields }),
+      });
+
+      if (!res.ok) throw new Error("Translation request failed");
+
+      const { translations } = await res.json();
+
+      const updatePayload: Record<string, string> = {};
+      for (const [key, value] of Object.entries(translations)) {
+        if (typeof value === "string" && value.trim().length > 0) {
+          updatePayload[`${key}_en`] = value;
+        }
+      }
+
+      if (Object.keys(updatePayload).length > 0) {
+        const { error } = await supabase
+          .from("projects")
+          .update(updatePayload as any)
+          .eq("id", project.id);
+        if (error) throw error;
+      }
+
+      toast.success(t("translation_saved"));
+      qc.invalidateQueries({ queryKey: ["admin-projects"] });
+      qc.invalidateQueries({ queryKey: ["project", project.id] });
+    } catch (e: any) {
+      toast.error(t("translation_error"));
+    } finally {
+      setTranslating(false);
+    }
+  };
+
   return (
     <div className="space-y-3">
       <div>
@@ -552,7 +612,18 @@ function BriefingPanel({ project }: { project: any }) {
           className="resize-none"
         />
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center flex-wrap gap-2">
+        <Button
+          variant="secondary"
+          onClick={handleGenerateTranslations}
+          disabled={translating}
+        >
+          {translating ? (
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("generating_en")}</>
+          ) : (
+            <><Languages className="h-4 w-4 mr-2" /> {t("generate_en")}</>
+          )}
+        </Button>
         <Button onClick={() => save.mutate()} disabled={save.isPending}>
           <Save className="h-4 w-4 mr-2" />
           {save.isPending ? t("saving") : t("save")}
