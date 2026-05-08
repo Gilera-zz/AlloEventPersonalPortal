@@ -37,28 +37,28 @@
 
 :root {
   --radius: 1rem;
-  /* Allo Event brand: premium gold & black */
+  /* Allo Event brand: bone white & black */
   --background: #050505;
   --foreground: oklch(0.95 0.02 85);
   --card: oklch(0.21 0.008 60);
   --card-foreground: oklch(0.95 0.02 85);
   --popover: oklch(0.21 0.008 60);
   --popover-foreground: oklch(0.95 0.02 85);
-  --primary: oklch(0.72 0.09 85);            /* brand gold */
+  --primary: #F0EBE3;
   --primary-foreground: #050505;
   --secondary: oklch(0.25 0.008 60);
   --secondary-foreground: oklch(0.95 0.02 85);
   --muted: oklch(0.25 0.008 60);
   --muted-foreground: oklch(0.70 0.02 80);
-  --accent: oklch(0.72 0.09 85);
+  --accent: #F0EBE3;
   --accent-foreground: #050505;
   --destructive: oklch(0.62 0.22 25);
   --destructive-foreground: oklch(0.99 0.005 80);
   --success: oklch(0.7 0.15 145);
-  --border: oklch(0.30 0.01 60);
+  --border: oklch(0.28 0.005 60);
   --input: oklch(0.25 0.008 60);
-  --ring: oklch(0.72 0.09 85);
-  --brand: oklch(0.72 0.09 85);
+  --ring: #F0EBE3;
+  --brand: #F0EBE3;
   --brand-foreground: #050505;
   --sidebar-bg: #050505;
 }

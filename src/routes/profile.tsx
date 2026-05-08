@@ -14,22 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
-import { Loader2, Trash2, Upload, X, ShieldAlert, Award, Check } from "lucide-react";
+import { Loader2, Trash2, Upload, X, Award, Check } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   component: () => <RequireAuth><Profile /></RequireAuth>,
@@ -109,7 +98,6 @@ function Profile() {
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
   const [code, setCode] = useState("");
-  const [deleteReason, setDeleteReason] = useState("");
   const [uploading, setUploading] = useState(false);
   const [certs, setCerts] = useState<Record<CertKey, boolean>>({ b_license: false, forklift: false, serving_permit: false, hot_works: false });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -133,23 +121,6 @@ function Profile() {
     enabled: !!user,
     queryFn: async () => {
       const { data } = await supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle();
-      return data;
-    },
-  });
-
-  const { data: existingDeleteRequest } = useQuery({
-    queryKey: ["gdpr_request", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("gdpr_requests")
-        .select("*")
-        .eq("user_id", user!.id)
-        .eq("request_type", "account_deletion")
-        .in("status", ["pending", "in_progress"])
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
       return data;
     },
   });
@@ -260,24 +231,6 @@ function Profile() {
       } else {
         toast.error(t("redeem_fail"));
       }
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
-
-  const submitDeleteRequest = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("gdpr_requests").insert({
-        user_id: user!.id,
-        request_type: "account_deletion",
-        reason: deleteReason.trim() || null,
-        status: "pending",
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success(t("delete_request_sent"));
-      setDeleteReason("");
-      qc.invalidateQueries({ queryKey: ["gdpr_request"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -492,7 +445,7 @@ function Profile() {
                     addSkill();
                   }
                 }}
-                placeholder="Servering"
+                placeholder="t.ex. Servering, Ljudteknik, Scenbygge"
                 className="mt-2"
               />
               {skills.length > 0 && (
@@ -652,71 +605,6 @@ function Profile() {
           </div>
         </section>
       )}
-
-      {/* Privacy & GDPR */}
-      <section className="mt-10 bg-card border border-border rounded-xl p-6">
-        <div className="flex items-start gap-3">
-          <div className="h-9 w-9 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <ShieldAlert className="h-5 w-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary">
-              {t("privacy_title")}
-            </div>
-            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-              {t("privacy_body")}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 border-t border-border pt-6">
-          <h3 className="text-sm font-semibold">{t("delete_request_title")}</h3>
-          <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-            {t("delete_request_body")}
-          </p>
-
-          {existingDeleteRequest ? (
-            <div className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-              {t("delete_request_pending")}
-            </div>
-          ) : (
-            <div className="mt-4 space-y-3">
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                {t("delete_reason_label")}
-              </Label>
-              <Textarea
-                value={deleteReason}
-                onChange={(e) => setDeleteReason(e.target.value)}
-                rows={3}
-                className="resize-none"
-              />
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" disabled={submitDeleteRequest.isPending}>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    {t("submit_delete_request")}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t("delete_request_title")}</AlertDialogTitle>
-                    <AlertDialogDescription>{t("delete_request_body")}</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => submitDeleteRequest.mutate()}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {t("submit_delete_request")}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* GDPR footer */}
       <footer className="mt-10 mb-6 text-center">
