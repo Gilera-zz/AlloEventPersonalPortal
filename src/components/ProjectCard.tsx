@@ -3,17 +3,22 @@ import { format } from "date-fns";
 import { sv, enUS } from "date-fns/locale";
 import { MapPin, Calendar, ArrowRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { localized } from "@/lib/translate";
 import { Button } from "@/components/ui/button";
 
 export interface ProjectRow {
   id: string;
   title: string;
+  title_en?: string | null;
   description: string | null;
+  description_en?: string | null;
   category: string | null;
   location: string | null;
+  location_en?: string | null;
   starts_at: string;
   ends_at: string | null;
   dress_code: string | null;
+  dress_code_en?: string | null;
   positions_needed: number | null;
   image_url?: string | null;
 }
@@ -21,6 +26,9 @@ export interface ProjectRow {
 export function ProjectCard({ project, action }: { project: ProjectRow; action?: React.ReactNode }) {
   const { lang, t } = useI18n();
   const locale = lang === "sv" ? sv : enUS;
+  const title = localized(project, "title", lang) ?? project.title;
+  const description = localized(project, "description", lang);
+  const location = localized(project, "location", lang);
   return (
     <article className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/60 transition-all group hover:shadow-[0_8px_30px_-15px] hover:shadow-primary/40">
       <div className="md:flex">
@@ -32,7 +40,7 @@ export function ProjectCard({ project, action }: { project: ProjectRow; action?:
           >
             <img
               src={project.image_url}
-              alt={project.title}
+              alt={title}
               loading="lazy"
               className="h-44 md:h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
@@ -51,7 +59,7 @@ export function ProjectCard({ project, action }: { project: ProjectRow; action?:
                 params={{ projectId: project.id }}
                 className="block text-lg font-bold mt-2 group-hover:text-primary transition-colors"
               >
-                {project.title}
+                {title}
               </Link>
               <div className="flex flex-wrap gap-4 mt-2 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
@@ -59,14 +67,14 @@ export function ProjectCard({ project, action }: { project: ProjectRow; action?:
                   {format(new Date(project.starts_at), "d MMM", { locale })}
                   {project.ends_at && ` – ${format(new Date(project.ends_at), "d MMM", { locale })}`}
                 </span>
-                {project.location && (
+                {location && (
                   <span className="inline-flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {project.location}
+                    <MapPin className="h-3 w-3" /> {location}
                   </span>
                 )}
               </div>
-              {project.description && (
-                <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{project.description}</p>
+              {description && (
+                <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{description}</p>
               )}
             </div>
             {action}
