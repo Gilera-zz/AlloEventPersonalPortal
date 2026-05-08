@@ -4,7 +4,7 @@ export type Lang = "sv" | "en";
 
 const dict = {
   // Nav
-  nav_start: { sv: "Start", en: "Start" },
+  nav_start: { sv: "Min Dashboard", en: "My Dashboard" },
   nav_projects: { sv: "Projekt", en: "Projects" },
   nav_my_projects: { sv: "Mina projekt", en: "My projects" },
   nav_my_page: { sv: "Min sida", en: "My page" },
@@ -14,8 +14,9 @@ const dict = {
   nav_login: { sv: "Logga in", en: "Log in" },
   nav_about: { sv: "Om oss", en: "About" },
   nav_main_site: { sv: "Till huvudwebbplatsen", en: "Back to main site" },
-  nav_portal_home: { sv: "Portalens startsida", en: "Portal home" },
+  nav_portal_home: { sv: "Startsida", en: "Home" },
   nav_main_website: { sv: "Huvudwebbplats", en: "Main website" },
+  nav_to_alloevent: { sv: "Till alloevent.se", en: "To alloevent.se" },
 
   // Common
   loading: { sv: "Laddar…", en: "Loading…" },
