@@ -80,7 +80,7 @@ function ProjectDetail() {
       </Button>
       {isLoading && <p className="text-muted-foreground">{t("loading")}</p>}
       {project && (
-        <article className="bg-card border border-border rounded-2xl overflow-hidden">
+        <article className="bg-card border border-border rounded-xl overflow-hidden">
           {project.image_url && (
             <img src={project.image_url} alt={project.title} className="w-full h-72 md:h-96 object-cover" />
           )}
