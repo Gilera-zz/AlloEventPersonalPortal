@@ -1,8 +1,9 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "@/lib/auth";
-import { I18nProvider } from "@/lib/i18n";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { I18nProvider, useI18n } from "@/lib/i18n";
+import { AppShell } from "@/components/AppShell";
 import appCss from "../styles.css?url";
 
 const queryClient = new QueryClient();
@@ -14,7 +15,7 @@ function NotFoundComponent() {
         <h1 className="text-7xl font-bold">404</h1>
         <h2 className="mt-4 text-xl font-semibold">Sidan hittades inte</h2>
         <div className="mt-6">
-          <Link to="/" className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          <Link to="/" className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
             Tillbaka hem
           </Link>
         </div>
@@ -55,12 +56,34 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+const PUBLIC_PATHS = ["/", "/auth", "/about", "/privacy"];
+
+function AppShellGuard() {
+  const { user, loading } = useAuth();
+  const { t } = useI18n();
+  const path = useRouterState({ select: (s) => s.location.pathname });
+
+  if (PUBLIC_PATHS.some((p) => path === p)) return <Outlet />;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+        {t("loading")}
+      </div>
+    );
+  }
+
+  if (!user) return <Outlet />;
+
+  return <AppShell><Outlet /></AppShell>;
+}
+
 function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <AuthProvider>
-          <Outlet />
+          <AppShellGuard />
           <Toaster />
         </AuthProvider>
       </I18nProvider>

@@ -45,7 +45,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refresh = (s: Session | null) => {
       setSession(s);
       if (s?.user) {
-        // Defer to next tick so we don't block onAuthStateChange.
         setTimeout(() => {
           fetchIsAdmin(s.user.id).then(setIsAdmin).catch(() => setIsAdmin(false));
         }, 0);
@@ -54,7 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => refresh(s));
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === "SIGNED_OUT") {
+        setSession(null);
+        setIsAdmin(false);
+      } else if (s) {
+        refresh(s);
+      }
+    });
 
     supabase.auth.getSession().then(({ data }) => {
       refresh(data.session);
