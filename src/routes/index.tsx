@@ -24,11 +24,6 @@ function Index() {
           </a>
           <div className="flex items-center gap-3">
             <LangToggle />
-            {user ? (
-              <Button asChild size="sm"><Link to="/dashboard">{t("nav_start")} <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
-            ) : (
-              <Button asChild size="sm"><Link to="/auth">{t("nav_login")}</Link></Button>
-            )}
           </div>
         </div>
       </header>
