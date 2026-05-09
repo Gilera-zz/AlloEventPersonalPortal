@@ -30,7 +30,7 @@ export function ProjectCard({ project, action }: { project: ProjectRow; action?:
   const description = localized(project, "description", lang);
   const location = localized(project, "location", lang);
   return (
-    <article className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/60 transition-all group hover:shadow-[0_8px_30px_-15px] hover:shadow-primary/40">
+    <article className="glass rounded-xl overflow-hidden hover:border-white/[0.18] transition-all group">
       <div className="md:flex">
         {project.image_url && (
           <Link
@@ -50,18 +50,18 @@ export function ProjectCard({ project, action }: { project: ProjectRow; action?:
           <div className="flex justify-between items-start gap-4">
             <div className="flex-1 min-w-0">
               {project.category && (
-                <span className="px-2 py-0.5 bg-secondary text-muted-foreground rounded text-[10px] font-bold uppercase tracking-wider">
+                <span className="px-2 py-0.5 bg-white/[0.06] border border-white/[0.08] text-foreground/45 rounded text-[10px] font-bold uppercase tracking-wider">
                   {project.category}
                 </span>
               )}
               <Link
                 to="/projects/$projectId"
                 params={{ projectId: project.id }}
-                className="block text-lg font-bold mt-2 group-hover:text-primary transition-colors"
+                className="block text-lg font-bold mt-2 group-hover:text-foreground transition-colors text-foreground/90"
               >
                 {title}
               </Link>
-              <div className="flex flex-wrap gap-4 mt-2 text-xs text-muted-foreground">
+              <div className="flex flex-wrap gap-4 mt-2 text-xs text-foreground/40">
                 <span className="inline-flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   {format(new Date(project.starts_at), "d MMM", { locale })}
@@ -74,13 +74,13 @@ export function ProjectCard({ project, action }: { project: ProjectRow; action?:
                 )}
               </div>
               {description && (
-                <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{description}</p>
+                <p className="text-sm text-foreground/40 mt-3 line-clamp-2">{description}</p>
               )}
             </div>
             {action}
           </div>
-          <div className="mt-4 pt-4 border-t border-border flex justify-end">
-            <Button asChild variant="ghost" size="sm" className="text-primary hover:text-primary">
+          <div className="mt-4 pt-4 border-t border-white/[0.06] flex justify-end">
+            <Button asChild variant="ghost" size="sm" className="text-foreground/50 hover:text-foreground">
               <Link to="/projects/$projectId" params={{ projectId: project.id }}>
                 {t("read_more")} <ArrowRight className="ml-1 h-3 w-3" />
               </Link>

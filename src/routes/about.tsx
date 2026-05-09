@@ -18,7 +18,7 @@ function AboutPage() {
   const { lang } = useI18n();
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-background/85 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <img src={logo} alt="Allo Event" className="h-9 w-auto" />
@@ -27,13 +27,13 @@ function AboutPage() {
         </div>
       </header>
       <main className="max-w-3xl mx-auto px-6 py-16">
-        <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">
+        <span className="text-xs font-mono uppercase tracking-[0.3em] text-foreground/50">
           {lang === "sv" ? "Vår identitet" : "Our identity"}
         </span>
         <h1 className="text-4xl md:text-5xl font-bold mt-3 mb-8 tracking-tight">
           {lang === "sv" ? "Välkommen till Allo Event" : "Welcome to Allo Event"}
         </h1>
-        <div className="space-y-6 text-base md:text-lg text-muted-foreground leading-relaxed text-pretty">
+        <div className="space-y-6 text-base md:text-lg text-foreground/45 leading-relaxed text-pretty">
           {lang === "sv" ? (
             <>
               <p>Allo Event är ett växande bemanningsföretag inom event- och servicebranschen, som arbetar med en bred uppsättning kunder och projekt. Vi driver kontinuerligt spännande uppdrag och ger dig möjligheten att anmäla intresse för de projekt som passar dig bäst.</p>

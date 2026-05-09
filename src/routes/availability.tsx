@@ -61,9 +61,9 @@ function Availability() {
     <main className="max-w-4xl mx-auto px-6 md:px-10 py-10">
       <header className="mb-8 flex items-end justify-between flex-wrap gap-4">
         <div>
-          <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">{t("availability_kicker")}</span>
+          <span className="text-xs font-mono uppercase tracking-[0.3em] text-foreground/50">{t("availability_kicker")}</span>
           <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight">{t("availability_title")}</h1>
-          <p className="text-muted-foreground mt-2 text-sm">{t("availability_help")}</p>
+          <p className="text-foreground/40 mt-2 text-sm">{t("availability_help")}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" onClick={() => setWeekOffset((w) => w - 1)}>{t("prev")}</Button>
@@ -74,7 +74,7 @@ function Availability() {
 
       <div className="grid grid-cols-7 gap-2">
         {dayLabels.map((d) => (
-          <div key={d} className="text-[10px] font-mono uppercase text-muted-foreground text-center pb-1">{d}</div>
+          <div key={d} className="text-[10px] font-mono uppercase text-foreground/35 text-center pb-1">{d}</div>
         ))}
         {days.map((day) => {
           const iso = format(day, "yyyy-MM-dd");
@@ -84,14 +84,15 @@ function Availability() {
             <button
               key={iso}
               onClick={() => toggle.mutate({ date: iso, current: available })}
-              className={`aspect-square border rounded-lg p-2 flex flex-col items-center justify-center transition-all ${
+              className={`aspect-square rounded-lg p-2 flex flex-col items-center justify-center transition-all ${
                 isMarked
-                  ? "bg-primary text-primary-foreground border-primary shadow-[0_0_20px_-8px] shadow-primary"
-                  : "bg-card border-border hover:border-primary/50"
+                  ? "bg-white/[0.08] border text-foreground"
+                  : "bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.15] text-foreground/60"
               }`}
+              style={isMarked ? { borderColor: "var(--gold)", boxShadow: "0 0 20px -8px rgba(212, 165, 116, 0.4)" } : undefined}
             >
-              <span className="text-[10px] font-mono opacity-70">{format(day, "MMM", { locale })}</span>
-              <span className="text-xl font-bold">{format(day, "d")}</span>
+              <span className="text-[10px] font-mono opacity-60">{format(day, "MMM", { locale })}</span>
+              <span className="text-xl font-bold" style={isMarked ? { color: "var(--gold)" } : undefined}>{format(day, "d")}</span>
             </button>
           );
         })}

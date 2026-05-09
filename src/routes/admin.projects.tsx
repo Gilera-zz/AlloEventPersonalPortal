@@ -137,14 +137,14 @@ function AdminProjects() {
     <main className="max-w-5xl mx-auto px-6 md:px-10 py-10">
       <header className="mb-8 flex items-end justify-between flex-wrap gap-4">
         <div>
-          <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">Admin</span>
+          <span className="text-xs font-mono uppercase tracking-[0.3em] text-foreground/50">Admin</span>
           <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight">{t("admin_title")}</h1>
         </div>
         <Button onClick={() => setOpen(!open)}><Plus className="mr-1 h-4 w-4" /> {open ? t("cancel") : t("new_project")}</Button>
       </header>
 
       {open && (
-        <form onSubmit={(e) => { e.preventDefault(); create.mutate(); }} className="bg-card border border-border rounded-xl p-6 mb-8 space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); create.mutate(); }} className="glass rounded-xl p-6 mb-8 space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div><Label>{t("title_label")}</Label><Input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
             <div><Label>{t("category")}</Label><Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
@@ -166,25 +166,25 @@ function AdminProjects() {
 
       <div className="space-y-3">
         {projects?.map((p: any) => (
-          <div key={p.id} className="bg-card border border-border rounded-xl overflow-hidden">
+          <div key={p.id} className="glass rounded-xl overflow-hidden">
             <div className="p-4 flex items-center justify-between gap-4">
               <button className="flex-1 text-left min-w-0" onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}>
                 <div className="font-semibold truncate">{p.title}</div>
-                <div className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs text-foreground/40 mt-1">
                   {format(new Date(p.starts_at), "PPP", { locale })} · {p.location || "—"} · {p.project_interests?.[0]?.count ?? 0} {t("applicants").toLowerCase()}
                 </div>
               </button>
               <Button size="icon" variant="ghost" onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}>
                 {expandedId === p.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </Button>
-              <Button size="icon" variant="ghost" onClick={() => remove.mutate(p.id)} className="text-destructive">
+              <Button size="icon" variant="ghost" onClick={() => remove.mutate(p.id)} className="text-foreground/30 hover:text-foreground/60">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
             {expandedId === p.id && <ProjectAdminPanel project={p} />}
           </div>
         ))}
-        {projects?.length === 0 && <p className="text-muted-foreground">—</p>}
+        {projects?.length === 0 && <p className="text-foreground/40">—</p>}
       </div>
     </main>
   );
@@ -193,7 +193,7 @@ function AdminProjects() {
 function ProjectAdminPanel({ project }: { project: any }) {
   const { t } = useI18n();
   return (
-    <div className="border-t border-border bg-background/40 p-4">
+    <div className="border-t border-white/[0.08] bg-white/[0.02] p-4">
       <Tabs defaultValue="applicants" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="applicants">{t("tab_applicants")}</TabsTrigger>
@@ -269,25 +269,25 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
 
   return (
     <div>
-      <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-3">{t("applicants")}</div>
+      <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/40 mb-3">{t("applicants")}</div>
       {queryError && (
         <p className="text-sm text-destructive mb-2 break-words">
           {queryError.message}
         </p>
       )}
-      {isLoading && <p className="text-sm text-muted-foreground">{t("loading")}</p>}
+      {isLoading && <p className="text-sm text-foreground/40">{t("loading")}</p>}
       {!isLoading && !queryError && (!applicants || applicants.length === 0) && (
-        <p className="text-sm text-muted-foreground">{t("no_applicants")}</p>
+        <p className="text-sm text-foreground/40">{t("no_applicants")}</p>
       )}
       <ul className="space-y-2">
         {applicants?.map((a) => {
           const confirmed = a.status === "confirmed";
           const displayName = a.profiles?.full_name || a.profiles?.email || a.user_id.slice(0, 8);
           return (
-            <li key={a.id} className="flex items-center justify-between gap-3 bg-card border border-border rounded-md px-3 py-2">
+            <li key={a.id} className="flex items-center justify-between gap-3 glass rounded-md px-3 py-2">
               <button
                 type="button"
-                className="flex items-center gap-3 min-w-0 flex-1 text-left rounded-md -mx-1 px-1 py-0.5 hover:bg-background/60 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="flex items-center gap-3 min-w-0 flex-1 text-left rounded-md -mx-1 px-1 py-0.5 hover:bg-white/[0.04] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 onClick={() => a.profiles && setProfileOpen(a.profiles)}
                 aria-label={t("view_profile")}
               >
@@ -300,15 +300,21 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-sm font-medium truncate underline-offset-2 hover:underline">{displayName}</span>
-                    <Badge
-                      variant={confirmed ? "default" : "secondary"}
-                      className="capitalize shrink-0"
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium shrink-0"
+                      style={confirmed
+                        ? { backgroundColor: "rgba(212, 165, 116, 0.12)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }
+                        : { backgroundColor: "rgba(255, 255, 255, 0.06)", color: "var(--muted-foreground)", border: "1px solid rgba(255, 255, 255, 0.08)" }
+                      }
                     >
-                      <span className={`h-1.5 w-1.5 rounded-full mr-1.5 ${confirmed ? "bg-success" : "bg-yellow-500"}`} />
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ backgroundColor: confirmed ? "var(--gold)" : "var(--muted-foreground)" }}
+                      />
                       {confirmed ? t("status_confirmed") : t("status_interested")}
-                    </Badge>
+                    </span>
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">
+                  <div className="text-xs text-foreground/35 truncate">
                     {a.profiles?.email}
                     {a.profiles?.phone && ` · ${a.profiles.phone}`}
                   </div>
@@ -361,7 +367,7 @@ function ApplicantProfileModal({
             <div className="min-w-0">
               <DialogTitle className="truncate">{displayName}</DialogTitle>
               {profile?.occupation && (
-                <p className="text-xs text-muted-foreground mt-0.5">{profile.occupation}</p>
+                <p className="text-xs text-foreground/40 mt-0.5">{profile.occupation}</p>
               )}
             </div>
           </div>
@@ -369,30 +375,30 @@ function ApplicantProfileModal({
 
         <div className="space-y-5 mt-2">
           <section>
-            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary mb-2">
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
               {t("profile_modal_contact")}
             </div>
             <div className="text-sm space-y-1">
               {profile?.email && (
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex items-center gap-2 text-foreground/55">
                   <Mail className="h-4 w-4 shrink-0" />
                   <a className="hover:underline" href={`mailto:${profile.email}`}>{profile.email}</a>
                 </div>
               )}
               {profile?.phone && (
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex items-center gap-2 text-foreground/55">
                   <Phone className="h-4 w-4 shrink-0" />
                   <a className="hover:underline" href={`tel:${profile.phone}`}>{profile.phone}</a>
                 </div>
               )}
               {!profile?.email && !profile?.phone && (
-                <p className="text-sm text-muted-foreground">{t("profile_modal_empty")}</p>
+                <p className="text-sm text-foreground/40">{t("profile_modal_empty")}</p>
               )}
             </div>
           </section>
 
           <section>
-            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary mb-2">
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
               {t("profile_modal_about")}
             </div>
             <p className="text-sm whitespace-pre-line leading-relaxed">
@@ -401,22 +407,22 @@ function ApplicantProfileModal({
           </section>
 
           <section>
-            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary mb-2">
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
               {t("profile_modal_skills")}
             </div>
             {skills.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {skills.map((s) => (
-                  <Badge key={s} variant="secondary">{s}</Badge>
+                  <span key={s} className="inline-flex items-center rounded-full bg-white/[0.06] border border-white/[0.1] px-2.5 py-0.5 text-xs font-medium text-foreground/70">{s}</span>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">{t("profile_modal_empty")}</p>
+              <p className="text-sm text-foreground/40">{t("profile_modal_empty")}</p>
             )}
           </section>
 
           <section>
-            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary mb-2">
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
               {t("profile_modal_experience")}
             </div>
             <p className="text-sm whitespace-pre-line leading-relaxed">
@@ -425,10 +431,10 @@ function ApplicantProfileModal({
           </section>
 
           {(profile?.clothing_size || profile?.drivers_license) && (
-            <section className="pt-2 border-t border-border space-y-3">
+            <section className="pt-2 border-t border-white/[0.08] space-y-3">
               {profile?.clothing_size && (
                 <div>
-                  <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{t("clothing_size")}</div>
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{t("clothing_size")}</div>
                   <div className="text-sm font-medium mt-0.5">{profile.clothing_size}</div>
                 </div>
               )}
@@ -437,10 +443,16 @@ function ApplicantProfileModal({
                 const activeCerts = CERT_KEYS.filter((k) => certs[k]);
                 return activeCerts.length > 0 ? (
                   <div>
-                    <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{t("group_certificates")}</div>
+                    <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{t("group_certificates")}</div>
                     <div className="flex flex-wrap gap-1.5 mt-1">
                       {activeCerts.map((k) => (
-                        <Badge key={k} variant="secondary" className="text-xs">{t(`cert_${k}` as any)}</Badge>
+                        <span
+                          key={k}
+                          className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                          style={{ backgroundColor: "rgba(212, 165, 116, 0.12)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }}
+                        >
+                          {t(`cert_${k}` as any)}
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -483,12 +495,12 @@ function LogisticsPanel({ projectId }: { projectId: string }) {
 
   return (
     <div>
-      <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-3">
+      <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/40 mb-3">
         {t("logistics_title")}
       </div>
-      {isLoading && <p className="text-sm text-muted-foreground">{t("loading")}</p>}
+      {isLoading && <p className="text-sm text-foreground/40">{t("loading")}</p>}
       {!isLoading && summary.total === 0 && (
-        <p className="text-sm text-muted-foreground">{t("logistics_empty")}</p>
+        <p className="text-sm text-foreground/40">{t("logistics_empty")}</p>
       )}
       {summary.total > 0 && (
         <>
@@ -496,16 +508,16 @@ function LogisticsPanel({ projectId }: { projectId: string }) {
             {summary.rows.map((r) => (
               <li
                 key={r.label}
-                className={`flex items-center justify-between bg-card border border-border rounded-md px-3 py-2 text-sm ${
-                  r.missing ? "text-muted-foreground italic" : ""
+                className={`flex items-center justify-between glass rounded-md px-3 py-2 text-sm ${
+                  r.missing ? "text-foreground/40 italic" : ""
                 }`}
               >
                 <span className="font-medium">{r.label}</span>
-                <Badge variant="secondary" className="font-mono">{r.count} st</Badge>
+                <span className="inline-flex items-center rounded-full bg-white/[0.06] border border-white/[0.08] px-2.5 py-0.5 text-xs font-mono">{r.count} st</span>
               </li>
             ))}
           </ul>
-          <div className="mt-4 text-xs font-mono uppercase tracking-widest text-muted-foreground">
+          <div className="mt-4 text-xs font-mono uppercase tracking-widest text-foreground/40">
             {t("logistics_total")}: <span className="text-foreground font-bold">{summary.total}</span>
           </div>
         </>
@@ -594,10 +606,10 @@ function BriefingPanel({ project }: { project: any }) {
   return (
     <div className="space-y-3">
       <div>
-        <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-muted-foreground mb-1">
+        <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/40 mb-1">
           {t("staff_instructions")}
         </div>
-        <p className="text-xs text-muted-foreground mb-3">{t("staff_instructions_help")}</p>
+        <p className="text-xs text-foreground/35 mb-3">{t("staff_instructions_help")}</p>
         <Textarea
           rows={8}
           value={text}
