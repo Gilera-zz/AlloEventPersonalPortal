@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { ProjectCard, type ProjectRow } from "@/components/ProjectCard";
-import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/my-projects")({
@@ -31,11 +30,11 @@ function MyProjects() {
   return (
     <main className="max-w-5xl mx-auto px-6 md:px-10 py-10">
       <header className="mb-8">
-        <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">{t("my_projects")}</span>
+        <span className="text-xs font-mono uppercase tracking-[0.3em] text-foreground/50">{t("my_projects")}</span>
         <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight">{t("nav_my_projects")}</h1>
       </header>
       {(!data || data.length === 0) && (
-        <div className="bg-card border border-dashed border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
+        <div className="glass rounded-xl p-8 text-center text-foreground/40 text-sm border-dashed">
           {t("no_active")}
         </div>
       )}
@@ -43,15 +42,18 @@ function MyProjects() {
         {data?.map((row) => (
           <ProjectCard key={row.projects.id} project={row.projects} action={
             row.status === "confirmed" ? (
-              <Badge className="bg-success text-background hover:bg-success/90 border-transparent font-bold tracking-[0.2em]">
-                <span className="h-1.5 w-1.5 rounded-full mr-1.5 bg-background" />
+              <span
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-[0.2em] shrink-0"
+                style={{ backgroundColor: "rgba(212, 165, 116, 0.12)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }}
+              >
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--gold)" }} />
                 {t("status_confirmed_big")}
-              </Badge>
+              </span>
             ) : (
-              <Badge variant="secondary" className="capitalize">
-                <span className="h-1.5 w-1.5 rounded-full mr-1.5 bg-yellow-500" />
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/[0.06] border border-white/[0.08] px-2.5 py-1 text-[10px] font-medium text-foreground/50 capitalize shrink-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-foreground/40" />
                 {row.status === "interested" ? t("status_interested") : t("status_pending")}
-              </Badge>
+              </span>
             )
           } />
         ))}

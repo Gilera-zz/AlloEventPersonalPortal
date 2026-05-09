@@ -59,9 +59,9 @@ function AuthPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <a href="https://alloevent.se" target="_blank" rel="noopener noreferrer"><img src={logo} alt="Allo Event" className="h-14 w-auto mx-auto mb-4" /></a>
-          <p className="text-sm text-muted-foreground font-mono uppercase tracking-[0.3em]">{t("welcome_kicker")}</p>
+          <p className="text-sm text-foreground/40 font-mono uppercase tracking-[0.3em]">{t("welcome_kicker")}</p>
         </div>
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="glass rounded-xl p-6">
           <Tabs defaultValue="signin">
             <TabsList className="grid grid-cols-2 w-full mb-6">
               <TabsTrigger value="signin">{t("signin")}</TabsTrigger>

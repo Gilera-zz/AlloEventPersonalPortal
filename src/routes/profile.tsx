@@ -18,7 +18,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
-import { Loader2, Trash2, Upload, X, Award, Check } from "lucide-react";
+import { Loader2, Upload, X, Award, Check } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   component: () => <RequireAuth><Profile /></RequireAuth>,
@@ -305,13 +305,13 @@ function Profile() {
     <main className="max-w-3xl mx-auto px-6 md:px-10 py-10">
       <header className="mb-8">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">
+          <span className="text-xs font-mono uppercase tracking-[0.3em] text-foreground/50">
             {t("my_page_kicker")}
           </span>
           {saveStatus !== "idle" && (
             <div className={`flex items-center gap-2 text-sm transition-opacity ${
-              saveStatus === "saving" ? "text-muted-foreground" : "text-green-500"
-            }`}>
+              saveStatus === "saving" ? "text-foreground/40" : ""
+            }`} style={saveStatus === "saved" ? { color: "var(--gold)" } : undefined}>
               {saveStatus === "saving" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
@@ -322,12 +322,12 @@ function Profile() {
           )}
         </div>
         <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight">{t("my_page_title")}</h1>
-        <p className="text-muted-foreground mt-2">{t("my_page_sub")}</p>
+        <p className="text-foreground/45 mt-2">{t("my_page_sub")}</p>
       </header>
 
       {/* Avatar */}
-      <section className="bg-card border border-border rounded-xl p-6 mb-6">
-        <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary mb-4">
+      <section className="glass rounded-xl p-6 mb-6">
+        <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-4">
           {t("avatar_title")}
         </div>
         <div className="flex items-center gap-5">
@@ -335,11 +335,11 @@ function Profile() {
             url={profile?.avatar_url}
             name={form.full_name}
             email={user?.email}
-            className="h-20 w-20 ring-2 ring-primary/30"
+            className="h-20 w-20 ring-2 ring-white/[0.12]"
             fallbackClassName="text-xl"
           />
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-muted-foreground mb-3">{t("avatar_help")}</p>
+            <p className="text-sm text-foreground/45 mb-3">{t("avatar_help")}</p>
             <div className="flex flex-wrap gap-2">
               <input
                 ref={fileInputRef}
@@ -373,7 +373,7 @@ function Profile() {
                   disabled={uploading}
                   onClick={removeAvatar}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" /> {t("remove_avatar")}
+                  {t("remove_avatar")}
                 </Button>
               )}
             </div>
@@ -383,15 +383,15 @@ function Profile() {
 
       <div className="space-y-6">
         {/* Personal */}
-        <fieldset className="bg-card border border-border rounded-xl p-6">
-          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary px-2 -ml-2">
+        <fieldset className="glass rounded-xl p-6">
+          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 px-2 -ml-2">
             {t("group_personal")}
           </legend>
           <div className="grid md:grid-cols-2 gap-5 mt-3">
             <Field label={t("full_name")} value={form.full_name} onChange={(v) => setField("full_name", v)} />
             <div>
               <Field label={t("personal_id")} value={form.personal_id} onChange={(v) => setField("personal_id", v)} placeholder="AE-XXXX" />
-              <p className="text-xs text-muted-foreground mt-1">{t("personal_id_auto_hint")}</p>
+              <p className="text-xs text-foreground/35 mt-1">{t("personal_id_auto_hint")}</p>
             </div>
             <Field label={t("email")} type="email" value={form.email} onChange={(v) => setField("email", v)} />
             <Field label={t("phone")} value={form.phone} onChange={(v) => setField("phone", v)} error={validationErrors.phone} />
@@ -402,13 +402,13 @@ function Profile() {
         </fieldset>
 
         {/* About me */}
-        <fieldset className="bg-card border border-border rounded-xl p-6">
-          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary px-2 -ml-2">
+        <fieldset className="glass rounded-xl p-6">
+          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 px-2 -ml-2">
             {t("group_about")}
           </legend>
           <div className="space-y-5 mt-3">
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              <Label className="text-xs uppercase tracking-wider text-foreground/45">
                 {t("bio")}
               </Label>
               <Textarea
@@ -420,10 +420,10 @@ function Profile() {
               />
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              <Label className="text-xs uppercase tracking-wider text-foreground/45">
                 {t("experience")}
               </Label>
-              <p className="text-xs text-muted-foreground mt-1">{t("experience_help")}</p>
+              <p className="text-xs text-foreground/35 mt-1">{t("experience_help")}</p>
               <Textarea
                 value={form.experience}
                 onChange={(e) => setField("experience", e.target.value)}
@@ -432,10 +432,10 @@ function Profile() {
               />
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              <Label className="text-xs uppercase tracking-wider text-foreground/45">
                 {t("special_skills")}
               </Label>
-              <p className="text-xs text-muted-foreground mt-1">{t("special_skills_help")}</p>
+              <p className="text-xs text-foreground/35 mt-1">{t("special_skills_help")}</p>
               <Input
                 value={skillInput}
                 onChange={(e) => setSkillInput(e.target.value)}
@@ -453,14 +453,14 @@ function Profile() {
                   {skills.map((s) => (
                     <span
                       key={s}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-sm font-medium text-primary-foreground"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.08] border border-white/[0.1] px-3 py-1 text-sm font-medium text-foreground/80"
                     >
                       {s}
                       <button
                         type="button"
                         aria-label={`${t("remove")} ${s}`}
                         onClick={() => setSkills((p) => p.filter((x) => x !== s))}
-                        className="rounded-full hover:bg-black/20 p-0.5 transition-colors"
+                        className="rounded-full hover:bg-white/[0.1] p-0.5 transition-colors"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -473,14 +473,14 @@ function Profile() {
         </fieldset>
 
         {/* Work */}
-        <fieldset className="bg-card border border-border rounded-xl p-6">
-          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary px-2 -ml-2">
+        <fieldset className="glass rounded-xl p-6">
+          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 px-2 -ml-2">
             {t("group_work")}
           </legend>
           <div className="grid md:grid-cols-2 gap-5 mt-3">
             <Field label={t("occupation")} value={form.occupation} onChange={(v) => setField("occupation", v)} />
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              <Label className="text-xs uppercase tracking-wider text-foreground/45">
                 {t("clothing_size")}
               </Label>
               <Select
@@ -505,13 +505,13 @@ function Profile() {
           </div>
         </fieldset>
 
-        {/* Certificates */}
-        <fieldset className="bg-card border border-border rounded-xl p-6">
-          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary px-2 -ml-2">
+        {/* Certificates — Midnight Luxe chips */}
+        <fieldset className="glass rounded-xl p-6">
+          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 px-2 -ml-2">
             <Award className="inline h-4 w-4 mr-1 -mt-0.5" />
             {t("group_certificates")}
           </legend>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+          <div className="flex flex-wrap gap-2 mt-3">
             {CERT_KEYS.map((key) => {
               const selected = certs[key];
               return (
@@ -522,11 +522,12 @@ function Profile() {
                     immediateRef.current = true;
                     setCerts((prev) => ({ ...prev, [key]: !prev[key] }));
                   }}
-                  className={`inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all cursor-pointer ${
                     selected
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary border border-border text-muted-foreground hover:border-primary/50"
+                      ? "border text-foreground"
+                      : "bg-white/[0.04] border border-white/[0.08] text-foreground/45 hover:border-white/[0.18] hover:text-foreground/70"
                   }`}
+                  style={selected ? { backgroundColor: "rgba(212, 165, 116, 0.12)", borderColor: "rgba(212, 165, 116, 0.35)", color: "var(--gold)" } : undefined}
                 >
                   {selected && <Check className="h-3.5 w-3.5 shrink-0" />}
                   {t(`cert_${key}` as any)}
@@ -537,8 +538,8 @@ function Profile() {
         </fieldset>
 
         {/* Emergency contact */}
-        <fieldset className="bg-card border border-border rounded-xl p-6">
-          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary px-2 -ml-2">
+        <fieldset className="glass rounded-xl p-6">
+          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 px-2 -ml-2">
             {t("group_emergency")}
           </legend>
           <div className="grid md:grid-cols-2 gap-5 mt-3">
@@ -557,8 +558,8 @@ function Profile() {
         </fieldset>
 
         {/* Payout */}
-        <fieldset className="bg-card border border-border rounded-xl p-6">
-          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-primary px-2 -ml-2">
+        <fieldset className="glass rounded-xl p-6">
+          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 px-2 -ml-2">
             {t("group_bank")}
           </legend>
           <div className="grid md:grid-cols-2 gap-5 mt-3">
@@ -585,8 +586,8 @@ function Profile() {
       </div>
 
       {!isAdmin && (
-        <section className="mt-10 bg-card border border-border rounded-xl p-6">
-          <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-muted-foreground">
+        <section className="mt-10 glass rounded-xl p-6">
+          <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/40">
             {t("redeem_admin")}
           </div>
           <div className="flex flex-col sm:flex-row gap-3 mt-3">
@@ -608,7 +609,7 @@ function Profile() {
 
       {/* GDPR footer */}
       <footer className="mt-10 mb-6 text-center">
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-xs text-foreground/35 leading-relaxed">
           {t("gdpr_footer")}
         </p>
       </footer>
@@ -635,7 +636,7 @@ function Field({
 }) {
   return (
     <div>
-      <Label className="text-xs uppercase tracking-wider text-muted-foreground">{label}</Label>
+      <Label className="text-xs uppercase tracking-wider text-foreground/45">{label}</Label>
       <Input
         type={type}
         inputMode={inputMode}

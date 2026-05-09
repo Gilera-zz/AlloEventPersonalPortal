@@ -79,12 +79,12 @@ function Projects() {
     return (
       <main className="max-w-5xl mx-auto px-6 md:px-10 py-10">
         <header className="mb-8">
-          <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">{t("projects_kicker")}</span>
+          <span className="text-xs font-mono uppercase tracking-[0.3em] text-foreground/50">{t("projects_kicker")}</span>
           <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight">{t("nav_projects")}</h1>
         </header>
-        <div className="bg-card border border-border rounded-xl p-8 text-center">
-          <AlertTriangle className="h-10 w-10 text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground mb-6">{t("profile_incomplete_title")}</p>
+        <div className="glass rounded-xl p-8 text-center">
+          <AlertTriangle className="h-10 w-10 mx-auto mb-4" style={{ color: "var(--gold)" }} />
+          <p className="text-foreground/45 mb-6">{t("profile_incomplete_title")}</p>
           <Button asChild>
             <Link to="/profile">{t("profile_incomplete_cta")}</Link>
           </Button>
@@ -96,11 +96,11 @@ function Projects() {
   return (
     <main className="max-w-5xl mx-auto px-6 md:px-10 py-10">
       <header className="mb-8">
-        <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">{t("projects_kicker")}</span>
+        <span className="text-xs font-mono uppercase tracking-[0.3em] text-foreground/50">{t("projects_kicker")}</span>
         <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight">{t("nav_projects")}</h1>
-        <p className="text-muted-foreground mt-2">{t("feed_subtitle")}</p>
+        <p className="text-foreground/40 mt-2">{t("feed_subtitle")}</p>
       </header>
-      {projects?.length === 0 && <p className="text-muted-foreground">{t("no_upcoming")}</p>}
+      {projects?.length === 0 && <p className="text-foreground/40">{t("no_upcoming")}</p>}
       <div className="space-y-5">
         {projects?.map((p) => {
           const isInterested = interests?.has(p.id) ?? false;

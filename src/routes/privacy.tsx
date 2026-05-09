@@ -25,7 +25,7 @@ function PrivacyPage() {
         {lang === "sv" ? "Integritetspolicy" : "Privacy Policy"}
       </h1>
 
-      <div className="prose prose-invert max-w-none space-y-6 text-muted-foreground text-sm leading-relaxed">
+      <div className="prose prose-invert max-w-none space-y-6 text-foreground/45 text-sm leading-relaxed">
         {lang === "sv" ? (
           <>
             <section>

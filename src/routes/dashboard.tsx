@@ -60,7 +60,6 @@ function Dashboard() {
 
   const firstName = profile?.full_name?.trim().split(/\s+/)[0];
 
-  // Group upcoming by month key
   const groups = new Map<string, ProjectLite[]>();
   upcoming?.forEach((p) => {
     const key = format(new Date(p.starts_at), "MMMM yyyy", { locale }).toUpperCase();
@@ -71,43 +70,46 @@ function Dashboard() {
   return (
     <div className="px-6 md:px-10 py-10 max-w-5xl mx-auto">
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-xl border border-border mb-12">
-        <img src={hero} alt="" width={1600} height={900} className="w-full h-56 md:h-72 object-cover opacity-50" />
-        <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
+      <section className="relative overflow-hidden rounded-xl border border-white/[0.08] mb-12">
+        <img src={hero} alt="" width={1600} height={900} className="w-full h-56 md:h-72 object-cover opacity-40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] to-transparent" />
         <div className="absolute bottom-0 left-0 p-6 md:p-10">
           {!profileLoading && (
             <>
-              <span className="text-xs font-mono uppercase tracking-[0.3em] text-primary">{t("hello")}</span>
+              <span className="text-xs font-mono uppercase tracking-[0.3em] text-foreground/50">{t("hello")}</span>
               <h1 className="text-3xl md:text-4xl font-bold mt-2">{firstName || user?.email}</h1>
               {profile?.personal_id && (
-                <span className="inline-block mt-2 text-[11px] font-mono uppercase tracking-[0.25em] text-primary/70 bg-primary/10 px-2 py-0.5 rounded">
+                <span
+                  className="inline-block mt-2 text-[11px] font-mono uppercase tracking-[0.25em] px-2 py-0.5 rounded"
+                  style={{ color: "var(--gold)", backgroundColor: "rgba(212, 165, 116, 0.1)", border: "1px solid rgba(212, 165, 116, 0.2)" }}
+                >
                   {profile.personal_id}
                 </span>
               )}
             </>
           )}
-          <p className="text-muted-foreground mt-2 max-w-xl text-sm">{t("welcome_body")}</p>
+          <p className="text-foreground/40 mt-2 max-w-xl text-sm">{t("welcome_body")}</p>
         </div>
       </section>
 
-      {/* New Projects scroll */}
+      {/* New Projects */}
       <section className="mb-14">
         <div className="flex items-end justify-between mb-6">
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight">{t("new_projects")}</h2>
-          <Button asChild variant="link" className="text-primary">
+          <Button asChild variant="link" className="text-foreground/60 hover:text-foreground">
             <Link to="/projects">{t("show_all")} <ArrowRight className="ml-1 h-4 w-4" /></Link>
           </Button>
         </div>
         {(!upcoming || upcoming.length === 0) && (
-          <p className="text-sm text-muted-foreground">{t("no_upcoming")}</p>
+          <p className="text-sm text-foreground/40">{t("no_upcoming")}</p>
         )}
         <div className="space-y-8">
           {Array.from(groups.entries()).map(([month, items]) => (
             <div key={month}>
-              <div className="text-[11px] font-mono tracking-[0.3em] text-muted-foreground border-b border-border pb-2 mb-3">
+              <div className="text-[11px] font-mono tracking-[0.3em] text-foreground/35 border-b border-white/[0.08] pb-2 mb-3">
                 {month}
               </div>
-              <ul className="divide-y divide-border">
+              <ul className="divide-y divide-white/[0.06]">
                 {items.map((p) => (
                   <li key={p.id}>
                     <Link
@@ -115,10 +117,10 @@ function Dashboard() {
                       params={{ projectId: p.id }}
                       className="flex items-center justify-between gap-4 py-3 group"
                     >
-                      <span className="font-medium group-hover:text-primary transition-colors group-hover:translate-x-1 duration-200 transform inline-block">
+                      <span className="font-medium group-hover:text-foreground transition-colors group-hover:translate-x-1 duration-200 transform inline-block text-foreground/80">
                         {localized(p, "title", lang) ?? p.title}
                       </span>
-                      <span className="text-xs text-muted-foreground font-mono shrink-0">
+                      <span className="text-xs text-foreground/35 font-mono shrink-0">
                         {format(new Date(p.starts_at), "d MMM", { locale })}
                         {p.ends_at && ` – ${format(new Date(p.ends_at), "d MMM", { locale })}`}
                       </span>
@@ -135,24 +137,30 @@ function Dashboard() {
       <section>
         <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-6">{t("my_projects")}</h2>
         {(!mine || mine.length === 0) ? (
-          <div className="bg-card border border-dashed border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
+          <div className="glass rounded-xl p-8 text-center text-foreground/40 text-sm border-dashed">
             {t("no_active")}
           </div>
         ) : (
-          <ul className="bg-card border border-border rounded-xl divide-y divide-border">
+          <ul className="glass rounded-xl divide-y divide-white/[0.06]">
             {mine.map((m: any) => (
               <li key={m.projects.id}>
-                <Link to="/projects/$projectId" params={{ projectId: m.projects.id }} className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-secondary/40 transition-colors">
+                <Link to="/projects/$projectId" params={{ projectId: m.projects.id }} className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-white/[0.03] transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className={`h-2 w-2 rounded-full shrink-0 ${m.status === "confirmed" ? "bg-success" : "bg-yellow-500"}`} />
+                    <span
+                      className="h-2 w-2 rounded-full shrink-0"
+                      style={{ backgroundColor: m.status === "confirmed" ? "var(--gold)" : "var(--muted-foreground)" }}
+                    />
                     <span className="font-medium truncate">{localized(m.projects, "title", lang) ?? m.projects.title}</span>
                   </div>
                   {m.status === "confirmed" ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-success/15 text-success border border-success/30 px-2 py-0.5 text-[10px] font-bold tracking-[0.2em] shrink-0">
+                    <span
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold tracking-[0.2em] shrink-0"
+                      style={{ backgroundColor: "rgba(212, 165, 116, 0.1)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.2)" }}
+                    >
                       {t("status_confirmed_big")}
                     </span>
                   ) : (
-                    <span className="text-xs text-muted-foreground capitalize shrink-0">
+                    <span className="text-xs text-foreground/40 capitalize shrink-0">
                       {m.status === "interested" ? t("status_interested") : t("status_pending")}
                     </span>
                   )}
