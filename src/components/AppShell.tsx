@@ -33,22 +33,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const SidebarInner = (
     <div className="flex h-full flex-col">
-      {/* Logo & brand */}
+      {/* Logo & brand — logo acts as "door" back to main website */}
       <div className="px-6 py-8 flex flex-col items-center border-b border-white/[0.08]">
-        <Link to="/dashboard" onClick={() => setOpen(false)}>
+        <a href="https://alloevent.se" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
           <img src={logo} alt="Allo Event" className="h-10 w-auto" />
-        </Link>
+        </a>
         <span className="mt-2 text-[10px] font-heading font-medium uppercase tracking-[0.35em] text-foreground/60">
           PORTAL
         </span>
-        <a
-          href="https://alloevent.se"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 flex items-center justify-center gap-2 w-full rounded-md border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-medium text-foreground/50 hover:text-foreground/80 hover:border-white/[0.18] hover:bg-white/[0.05] transition-all"
-        >
-          {t("nav_to_alloevent")} ↗
-        </a>
       </div>
 
       {/* Navigation */}
@@ -118,9 +110,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 border-b border-white/[0.08] bg-background/85 backdrop-blur-lg flex items-center justify-between px-4">
-        <Link to="/dashboard" className="flex items-center gap-2">
+        <a href="https://alloevent.se" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
           <img src={logo} alt="Allo Event" className="h-7 w-auto" />
-        </Link>
+        </a>
         <div className="flex items-center gap-2">
           {user && (
             <Link to="/profile" aria-label="Profile" className="rounded-full">
