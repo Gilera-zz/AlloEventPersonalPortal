@@ -412,17 +412,36 @@ function ApplicantProfileModal({
 
           <section>
             <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
-              {t("profile_modal_skills")}
+              {t("special_skills")}
             </div>
-            {skills.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {skills.map((s) => (
-                  <span key={s} className="inline-flex items-center rounded-full bg-white/[0.06] border border-white/[0.1] px-2.5 py-0.5 text-xs font-medium text-foreground/70">{s}</span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-foreground/40">{t("profile_modal_empty")}</p>
-            )}
+            {(() => {
+              const certs = profile?.drivers_license ? parseCerts(profile.drivers_license) : null;
+              const activeCerts = certs ? CERT_KEYS.filter((k) => certs[k]) : [];
+              const hasContent = skills.length > 0 || activeCerts.length > 0;
+              if (!hasContent) return <p className="text-sm text-foreground/40">{t("profile_modal_empty")}</p>;
+              return (
+                <div className="flex flex-wrap gap-2">
+                  {activeCerts.map((k) => (
+                    <span
+                      key={k}
+                      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                      style={{ backgroundColor: "rgba(212, 165, 116, 0.12)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }}
+                    >
+                      {t(`cert_${k}` as any)}
+                    </span>
+                  ))}
+                  {skills.map((s) => (
+                    <span
+                      key={s}
+                      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                      style={{ backgroundColor: "rgba(212, 165, 116, 0.08)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }}
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
           </section>
 
           <section>
@@ -434,34 +453,10 @@ function ApplicantProfileModal({
             </p>
           </section>
 
-          {(profile?.clothing_size || profile?.drivers_license) && (
-            <section className="pt-2 border-t border-white/[0.08] space-y-3">
-              {profile?.clothing_size && (
-                <div>
-                  <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{t("clothing_size")}</div>
-                  <div className="text-sm font-medium mt-0.5">{profile.clothing_size}</div>
-                </div>
-              )}
-              {profile?.drivers_license && (() => {
-                const certs = parseCerts(profile.drivers_license);
-                const activeCerts = CERT_KEYS.filter((k) => certs[k]);
-                return activeCerts.length > 0 ? (
-                  <div>
-                    <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{t("group_certificates")}</div>
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {activeCerts.map((k) => (
-                        <span
-                          key={k}
-                          className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                          style={{ backgroundColor: "rgba(212, 165, 116, 0.12)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }}
-                        >
-                          {t(`cert_${k}` as any)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ) : null;
-              })()}
+          {profile?.clothing_size && (
+            <section className="pt-2 border-t border-white/[0.08]">
+              <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{t("clothing_size")}</div>
+              <div className="text-sm font-medium mt-0.5">{profile.clothing_size}</div>
             </section>
           )}
         </div>

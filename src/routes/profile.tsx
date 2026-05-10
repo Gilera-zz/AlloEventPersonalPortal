@@ -18,7 +18,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
-import { Loader2, Upload, X, Award, Check } from "lucide-react";
+import { Loader2, Upload, X, Award, Check, Plus } from "lucide-react";
 import { useSaveStatus } from "@/components/SaveStatusProvider";
 
 export const Route = createFileRoute("/profile")({
@@ -102,6 +102,7 @@ function Profile() {
   const [uploading, setUploading] = useState(false);
   const [certs, setCerts] = useState<Record<CertKey, boolean>>({ b_license: false, forklift: false, serving_permit: false, hot_works: false });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [addingSkill, setAddingSkill] = useState(false);
   const { reportSaving, reportSaved } = useSaveStatus();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialLoadDone = useRef(false);
@@ -294,8 +295,10 @@ function Profile() {
       setSkillInput("");
       return;
     }
+    setAddingSkill(true);
     setSkills((p) => [...p, v]);
     setSkillInput("");
+    setTimeout(() => setAddingSkill(false), 600);
   }
 
   return (
@@ -414,45 +417,111 @@ function Profile() {
                 className="mt-2 resize-none"
               />
             </div>
-            <div>
-              <Label className="text-xs uppercase tracking-wider text-foreground/45">
-                {t("special_skills")}
-              </Label>
-              <p className="text-xs text-foreground/35 mt-1">{t("special_skills_help")}</p>
-              <Input
-                value={skillInput}
-                onChange={(e) => setSkillInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addSkill();
-                  }
-                }}
-                placeholder="t.ex. Servering, Ljudteknik, Scenbygge"
-                className="mt-2"
-              />
-              {skills.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {skills.map((s) => (
-                    <span
-                      key={s}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.08] border border-white/[0.1] px-3 py-1 text-sm font-medium text-foreground/80"
-                    >
-                      {s}
-                      <button
-                        type="button"
-                        aria-label={`${t("remove")} ${s}`}
-                        onClick={() => setSkills((p) => p.filter((x) => x !== s))}
-                        className="rounded-full hover:bg-white/[0.1] p-0.5 transition-colors"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
+        </fieldset>
+
+        {/* Specialkompetenser & Behörigheter — Unified section */}
+        <fieldset className="glass rounded-xl p-6">
+          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 px-2 -ml-2">
+            <Award className="inline h-4 w-4 mr-1 -mt-0.5" />
+            {t("special_skills")}
+          </legend>
+          <p className="text-xs text-foreground/35 mt-2 mb-4">{t("special_skills_help")}</p>
+
+          {/* Certificate chips */}
+          <div className="flex flex-wrap gap-2 mb-5">
+            {CERT_KEYS.map((key) => {
+              const selected = certs[key];
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    immediateRef.current = true;
+                    setCerts((prev) => ({ ...prev, [key]: !prev[key] }));
+                  }}
+                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all cursor-pointer ${
+                    selected
+                      ? "border text-foreground"
+                      : "bg-white/[0.04] border border-white/[0.08] text-foreground/45 hover:border-white/[0.18] hover:text-foreground/70"
+                  }`}
+                  style={selected ? { backgroundColor: "rgba(212, 165, 116, 0.12)", borderColor: "rgba(212, 165, 116, 0.35)", color: "var(--gold)" } : undefined}
+                >
+                  {selected && <Check className="h-3.5 w-3.5 shrink-0" />}
+                  {t(`cert_${key}` as any)}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Free-text skill input with button */}
+          <div className="flex gap-2">
+            <Input
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addSkill();
+                }
+              }}
+              placeholder="t.ex. Scenbygge, Logistik, Bartending…"
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              onClick={addSkill}
+              disabled={!skillInput.trim()}
+              className={`shrink-0 border font-medium transition-all ${addingSkill ? "animate-gold-glow" : ""}`}
+              style={{
+                backgroundColor: addingSkill ? "rgba(212, 165, 116, 0.15)" : "#0a0a0a",
+                borderColor: "rgba(212, 165, 116, 0.5)",
+                color: addingSkill ? "var(--gold)" : "#F5F0EB",
+              }}
+            >
+              {addingSkill ? (
+                <>
+                  <Check className="h-4 w-4 mr-1.5" />
+                  {t("skill_added")}
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  {t("add_skill")}
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Skill tags */}
+          {skills.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {skills.map((s) => (
+                <span
+                  key={s}
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium border transition-colors"
+                  style={{
+                    backgroundColor: "rgba(212, 165, 116, 0.08)",
+                    borderColor: "rgba(212, 165, 116, 0.25)",
+                    color: "var(--gold)",
+                  }}
+                >
+                  {s}
+                  <button
+                    type="button"
+                    aria-label={`${t("remove")} ${s}`}
+                    onClick={() => {
+                      immediateRef.current = true;
+                      setSkills((p) => p.filter((x) => x !== s));
+                    }}
+                    className="rounded-full hover:bg-white/[0.1] p-0.5 transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </fieldset>
 
         {/* Work */}
@@ -485,38 +554,6 @@ function Profile() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-        </fieldset>
-
-        {/* Certificates — Midnight Luxe chips */}
-        <fieldset className="glass rounded-xl p-6">
-          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 px-2 -ml-2">
-            <Award className="inline h-4 w-4 mr-1 -mt-0.5" />
-            {t("group_certificates")}
-          </legend>
-          <div className="flex flex-wrap gap-2 mt-3">
-            {CERT_KEYS.map((key) => {
-              const selected = certs[key];
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => {
-                    immediateRef.current = true;
-                    setCerts((prev) => ({ ...prev, [key]: !prev[key] }));
-                  }}
-                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all cursor-pointer ${
-                    selected
-                      ? "border text-foreground"
-                      : "bg-white/[0.04] border border-white/[0.08] text-foreground/45 hover:border-white/[0.18] hover:text-foreground/70"
-                  }`}
-                  style={selected ? { backgroundColor: "rgba(212, 165, 116, 0.12)", borderColor: "rgba(212, 165, 116, 0.35)", color: "var(--gold)" } : undefined}
-                >
-                  {selected && <Check className="h-3.5 w-3.5 shrink-0" />}
-                  {t(`cert_${key}` as any)}
-                </button>
-              );
-            })}
           </div>
         </fieldset>
 

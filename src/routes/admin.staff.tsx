@@ -169,7 +169,13 @@ function AdminStaff() {
                   {skills.map((skill) => (
                     <span
                       key={skill}
-                      className="inline-flex items-center rounded-full bg-white/[0.04] border border-white/[0.08] px-2.5 py-0.5 text-[11px] font-medium text-foreground/50"
+                      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+                      style={{
+                        backgroundColor: "rgba(212, 165, 116, 0.08)",
+                        borderColor: "rgba(212, 165, 116, 0.25)",
+                        border: "1px solid rgba(212, 165, 116, 0.25)",
+                        color: "var(--gold)",
+                      }}
                     >
                       {skill}
                     </span>
