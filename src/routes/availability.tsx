@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { addDays, format, startOfWeek } from "date-fns";
 import { sv, enUS } from "date-fns/locale";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
+import { useSaveStatus } from "@/components/SaveStatusProvider";
 
 export const Route = createFileRoute("/availability")({
   component: () => <RequireAuth><Availability /></RequireAuth>,
@@ -20,6 +21,12 @@ function Availability() {
   const locale = lang === "sv" ? sv : enUS;
   const qc = useQueryClient();
   const [weekOffset, setWeekOffset] = useState(0);
+  const { reportSaving, reportSaved } = useSaveStatus();
+
+  const [pending, setPending] = useState(new Map<string, boolean>());
+  const pendingRef = useRef(pending);
+  pendingRef.current = pending;
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const weekStart = addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset * 7);
   const days = Array.from({ length: 28 }).map((_, i) => addDays(weekStart, i));
@@ -38,23 +45,63 @@ function Availability() {
     },
   });
 
-  const toggle = useMutation({
-    mutationFn: async ({ date, current }: { date: string; current: boolean | undefined }) => {
-      if (current === undefined) {
-        const { error } = await supabase.from("availability").insert({ user_id: user!.id, date, available: true });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("availability").update({ available: !current })
-          .eq("user_id", user!.id).eq("date", date);
-        if (error) throw error;
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
+  useEffect(() => {
+    setPending(new Map());
+  }, [data]);
+
+  const flush = useCallback(async () => {
+    const ops = new Map(pendingRef.current);
+    const serverData = dataRef.current;
+    if (ops.size === 0 || !user) return;
+
+    reportSaving();
+    try {
+      for (const [date, desired] of ops) {
+        const serverState = serverData?.get(date);
+        if (serverState === undefined) {
+          const { error } = await supabase.from("availability")
+            .insert({ user_id: user.id, date, available: desired });
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("availability")
+            .update({ available: desired })
+            .eq("user_id", user.id).eq("date", date);
+          if (error) throw error;
+        }
       }
-    },
-    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["availability"] });
-      toast.success(t("toast_saved"));
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
+      reportSaved();
+    } catch (e: any) {
+      toast.error(e.message);
+      qc.invalidateQueries({ queryKey: ["availability"] });
+    }
+  }, [user, qc, reportSaving, reportSaved]);
+
+  function handleClick(date: string) {
+    setPending(prev => {
+      const next = new Map(prev);
+      const currentMarked = prev.has(date)
+        ? prev.get(date)!
+        : dataRef.current?.get(date) === true;
+      next.set(date, !currentMarked);
+      return next;
+    });
+
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(flush, 700);
+  }
+
+  useEffect(() => {
+    return () => clearTimeout(debounceRef.current);
+  }, []);
+
+  function isMarked(date: string): boolean {
+    if (pending.has(date)) return pending.get(date)!;
+    return data?.get(date) === true;
+  }
 
   const dayLabels = lang === "sv"
     ? ["Mån","Tis","Ons","Tor","Fre","Lör","Sön"]
@@ -81,21 +128,20 @@ function Availability() {
         ))}
         {days.map((day) => {
           const iso = format(day, "yyyy-MM-dd");
-          const available = data?.get(iso);
-          const isMarked = available === true;
+          const marked = isMarked(iso);
           return (
             <button
               key={iso}
-              onClick={() => toggle.mutate({ date: iso, current: available })}
+              onClick={() => handleClick(iso)}
               className={`aspect-square rounded-lg p-2 flex flex-col items-center justify-center transition-all ${
-                isMarked
+                marked
                   ? "bg-white/[0.08] border text-foreground"
                   : "bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.15] text-foreground/60"
               }`}
-              style={isMarked ? { borderColor: "var(--gold)", boxShadow: "0 0 20px -8px rgba(212, 165, 116, 0.4)" } : undefined}
+              style={marked ? { borderColor: "var(--gold)", boxShadow: "0 0 20px -8px rgba(212, 165, 116, 0.4)" } : undefined}
             >
               <span className="text-[10px] font-mono opacity-60">{format(day, "MMM", { locale })}</span>
-              <span className="text-xl font-bold" style={isMarked ? { color: "var(--gold)" } : undefined}>{format(day, "d")}</span>
+              <span className="text-xl font-bold" style={marked ? { color: "var(--gold)" } : undefined}>{format(day, "d")}</span>
             </button>
           );
         })}

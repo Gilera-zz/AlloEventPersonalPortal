@@ -287,9 +287,11 @@ const dict = {
   staff_unconfirmed: { sv: "Bekräftelse borttagen", en: "Confirmation removed" },
   no_staff: { sv: "Ingen personal registrerad.", en: "No staff registered." },
 
-  // Midnight Luxe toasts
+  // Status indicator
   toast_saved: { sv: "Sparat ✓", en: "Saved ✓" },
   availability_saved: { sv: "Tillgänglighet uppdaterad", en: "Availability updated" },
+  status_all_saved: { sv: "Alla ändringar sparade", en: "All changes saved" },
+  status_save_error: { sv: "Kunde inte spara. Kontrollera din anslutning.", en: "Could not save. Check your connection." },
 
 } as const;
 
