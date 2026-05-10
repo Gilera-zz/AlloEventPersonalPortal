@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,9 +21,11 @@ interface ProjectLite {
 }
 
 function Dashboard() {
-  const { user } = useAuth();
+  const { user, refreshRole } = useAuth();
   const { t, lang } = useI18n();
   const locale = lang === "sv" ? sv : enUS;
+
+  useEffect(() => { refreshRole(); }, [refreshRole]);
 
   const { data: upcoming } = useQuery({
     queryKey: ["upcoming-projects"],

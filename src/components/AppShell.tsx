@@ -10,7 +10,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { useMyProfile } from "@/hooks/useMyProfile";
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, userRole, signOut } = useAuth();
   const { data: profile } = useMyProfile();
   const { t } = useI18n();
   const nav = useNavigate();
@@ -18,17 +18,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   const links = [
-    { to: "/", label: t("nav_portal_home"), icon: Home },
-    { to: "/dashboard", label: t("nav_start"), icon: LayoutDashboard },
-    { to: "/projects", label: t("nav_projects"), icon: Briefcase },
-    { to: "/my-projects", label: t("nav_my_projects"), icon: ListChecks },
-    { to: "/availability", label: t("nav_availability"), icon: CalendarDays },
-    { to: "/profile", label: t("nav_my_page"), icon: User },
+    { to: "/", label: t("nav_portal_home"), icon: Home, admin: false },
+    { to: "/dashboard", label: t("nav_start"), icon: LayoutDashboard, admin: false },
+    { to: "/projects", label: t("nav_projects"), icon: Briefcase, admin: false },
+    { to: "/my-projects", label: t("nav_my_projects"), icon: ListChecks, admin: false },
+    { to: "/availability", label: t("nav_availability"), icon: CalendarDays, admin: false },
+    { to: "/profile", label: t("nav_my_page"), icon: User, admin: false },
     ...(isAdmin
       ? [
-          { to: "/admin/projects", label: t("nav_manage_projects"), icon: ShieldCheck },
-          { to: "/admin/users", label: t("nav_admin_panel"), icon: Settings2 },
-          { to: "/admin/staff", label: t("nav_staff_list"), icon: Users },
+          { to: "/admin/projects", label: t("nav_manage_projects"), icon: ShieldCheck, admin: true },
+          { to: "/admin/users", label: t("nav_admin_panel"), icon: Settings2, admin: true },
+          { to: "/admin/staff", label: t("nav_staff_list"), icon: Users, admin: true },
         ]
       : []),
   ];
@@ -64,8 +64,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                   : "text-foreground/45 hover:text-foreground/75 hover:bg-white/[0.03]"
               }`}
             >
-              {active && (
+              {active && !l.admin && (
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 rounded-r-full" style={{ backgroundColor: "var(--gold)" }} />
+              )}
+              {l.admin && (
+                <span
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 rounded-r-full"
+                  style={{ backgroundColor: "var(--gold)", opacity: active ? 1 : 0.45 }}
+                />
               )}
               <l.icon
                 className="h-4 w-4"
@@ -88,8 +94,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           />
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium truncate">{displayName}</div>
-            <div className="text-[10px] font-mono uppercase tracking-[0.25em]" style={{ color: isAdmin ? "var(--gold)" : "var(--muted-foreground)" }}>
-              {isAdmin ? "Admin" : "Crew"}
+            <div
+              className="text-[10px] uppercase tracking-[0.25em]"
+              style={{
+                color: isAdmin ? "var(--gold)" : "var(--muted-foreground)",
+                fontFamily: isAdmin ? "'Urbanist', sans-serif" : "var(--font-sans)",
+                fontWeight: isAdmin ? 700 : 500,
+              }}
+            >
+              {isAdmin ? "ADMIN" : "CREW"}
             </div>
           </div>
           <button
