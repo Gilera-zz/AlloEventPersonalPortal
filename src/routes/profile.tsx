@@ -166,10 +166,18 @@ function Profile() {
     const c = certsRef.current;
     const s = skillsRef.current;
 
-    if (f.phone && !/^07\d{8}$/.test(f.phone.replace(/\s|-/g, ""))) return;
-    if (f.ice_phone && !/^07\d{8}$/.test(f.ice_phone.replace(/\s|-/g, ""))) return;
-    if (f.bank_clearing && !/^\d{4,5}$/.test(f.bank_clearing.replace(/\s|-/g, ""))) return;
-    if (f.bank_account && !/^\d{1,15}$/.test(f.bank_account.replace(/\s|-/g, ""))) return;
+    const errors: Record<string, string> = {};
+    if (f.phone && !/^07\d{8}$/.test(f.phone.replace(/\s|-/g, "")))
+      errors.phone = t("validation_phone_format");
+    if (f.ice_phone && !/^07\d{8}$/.test(f.ice_phone.replace(/\s|-/g, "")))
+      errors.ice_phone = t("validation_phone_format");
+    if (f.bank_clearing && !/^\d{4,5}$/.test(f.bank_clearing.replace(/\s|-/g, "")))
+      errors.bank_clearing = t("validation_bank_clearing");
+    if (f.bank_account && !/^\d{1,15}$/.test(f.bank_account.replace(/\s|-/g, "")))
+      errors.bank_account = t("validation_bank_account");
+
+    setValidationErrors(errors);
+    if (Object.keys(errors).length > 0) return;
 
     reportSaving();
     try {
@@ -192,7 +200,7 @@ function Profile() {
     } catch (err: any) {
       toast.error(err.message);
     }
-  }, [user, reportSaving, reportSaved]);
+  }, [user, reportSaving, reportSaved, t]);
 
   useEffect(() => {
     if (!initialLoadDone.current || !user) return;
