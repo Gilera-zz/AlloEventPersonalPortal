@@ -17,13 +17,19 @@ const Ctx = createContext<AuthCtx>({
 });
 
 async function fetchUserRole(userId: string): Promise<string> {
-  const { data: roleRow } = await supabase
+  const { data: hasAdmin, error: rpcError } = await supabase.rpc("has_role", {
+    _role: "admin",
+    _user_id: userId,
+  });
+  if (!rpcError && hasAdmin === true) return "admin";
+
+  const { data: roleRow, error: roleError } = await supabase
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
-    .maybeSingle();
+    .single();
 
-  if (roleRow?.role?.toLowerCase() === "admin") return "admin";
+  if (!roleError && roleRow?.role?.toLowerCase() === "admin") return "admin";
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -33,7 +39,7 @@ async function fetchUserRole(userId: string): Promise<string> {
 
   if (profile?.role?.toLowerCase() === "admin") return "admin";
 
-  return roleRow?.role?.toLowerCase() ?? "crew";
+  return "crew";
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
