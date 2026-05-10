@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { LangToggle } from "@/components/LangToggle";
 import { Button } from "@/components/ui/button";
-import { Home, LayoutDashboard, Briefcase, User, LogOut, Menu, X, ShieldCheck, CalendarDays, ListChecks } from "lucide-react";
+import { Home, LayoutDashboard, Briefcase, User, LogOut, Menu, X, ShieldCheck, CalendarDays, ListChecks, Users, Settings2 } from "lucide-react";
 import logo from "@/assets/allo-logo.png";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useMyProfile } from "@/hooks/useMyProfile";
@@ -24,7 +24,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/my-projects", label: t("nav_my_projects"), icon: ListChecks },
     { to: "/availability", label: t("nav_availability"), icon: CalendarDays },
     { to: "/profile", label: t("nav_my_page"), icon: User },
-    ...(isAdmin ? [{ to: "/admin/projects", label: t("nav_admin"), icon: ShieldCheck }] : []),
+    ...(isAdmin
+      ? [
+          { to: "/admin/projects", label: t("nav_manage_projects"), icon: ShieldCheck },
+          { to: "/admin/users", label: t("nav_admin_panel"), icon: Settings2 },
+          { to: "/admin/staff", label: t("nav_staff_list"), icon: Users },
+        ]
+      : []),
   ];
 
   const isActive = (to: string) => to === "/" ? path === "/" : path === to || path.startsWith(to + "/");
