@@ -63,10 +63,13 @@ export default async (req: Request, _context: Context) => {
   }
 
   if (action === "grant") {
-    await adminClient
+    const { error: profileErr } = await adminClient
       .from("profiles")
       .update({ role: "admin" })
       .eq("id", targetUserId);
+    if (profileErr) {
+      return Response.json({ error: profileErr.message }, { status: 500 });
+    }
 
     const { data: existing } = await adminClient
       .from("user_roles")
@@ -75,25 +78,37 @@ export default async (req: Request, _context: Context) => {
       .maybeSingle();
 
     if (existing) {
-      await adminClient
+      const { error: roleErr } = await adminClient
         .from("user_roles")
         .update({ role: "admin" })
         .eq("user_id", targetUserId);
+      if (roleErr) {
+        return Response.json({ error: roleErr.message }, { status: 500 });
+      }
     } else {
-      await adminClient
+      const { error: roleErr } = await adminClient
         .from("user_roles")
         .insert({ user_id: targetUserId, role: "admin" });
+      if (roleErr) {
+        return Response.json({ error: roleErr.message }, { status: 500 });
+      }
     }
   } else {
-    await adminClient
+    const { error: profileErr } = await adminClient
       .from("profiles")
       .update({ role: null })
       .eq("id", targetUserId);
+    if (profileErr) {
+      return Response.json({ error: profileErr.message }, { status: 500 });
+    }
 
-    await adminClient
+    const { error: roleErr } = await adminClient
       .from("user_roles")
       .delete()
       .eq("user_id", targetUserId);
+    if (roleErr) {
+      return Response.json({ error: roleErr.message }, { status: 500 });
+    }
   }
 
   return Response.json({ ok: true });
