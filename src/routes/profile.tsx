@@ -19,6 +19,7 @@ import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "reac
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { Loader2, Upload, X, Award, Check } from "lucide-react";
+import { useSaveStatus } from "@/components/SaveStatusProvider";
 
 export const Route = createFileRoute("/profile")({
   component: () => <RequireAuth><Profile /></RequireAuth>,
@@ -101,11 +102,10 @@ function Profile() {
   const [uploading, setUploading] = useState(false);
   const [certs, setCerts] = useState<Record<CertKey, boolean>>({ b_license: false, forklift: false, serving_permit: false, hot_works: false });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const { reportSaving, reportSaved } = useSaveStatus();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialLoadDone = useRef(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const immediateRef = useRef(false);
   const gdprSetRef = useRef(false);
 
@@ -170,7 +170,7 @@ function Profile() {
     if (f.bank_clearing && !/^\d{4,5}$/.test(f.bank_clearing.replace(/\s|-/g, ""))) return;
     if (f.bank_account && !/^\d{1,15}$/.test(f.bank_account.replace(/\s|-/g, ""))) return;
 
-    setSaveStatus("saving");
+    reportSaving();
     try {
       if (!gdprSetRef.current) {
         await supabase.auth.updateUser({ data: { gdpr_consent: true, gdpr_consent_at: new Date().toISOString() } });
@@ -187,14 +187,11 @@ function Profile() {
         })
         .eq("id", user.id);
       if (error) throw error;
-      setSaveStatus("saved");
-      clearTimeout(savedTimer.current);
-      savedTimer.current = setTimeout(() => setSaveStatus("idle"), 2000);
+      reportSaved();
     } catch (err: any) {
-      setSaveStatus("idle");
       toast.error(err.message);
     }
-  }, [user]);
+  }, [user, reportSaving, reportSaved]);
 
   useEffect(() => {
     if (!initialLoadDone.current || !user) return;
@@ -210,7 +207,6 @@ function Profile() {
   useEffect(() => {
     return () => {
       clearTimeout(debounceTimer.current);
-      clearTimeout(savedTimer.current);
     };
   }, []);
 
@@ -244,6 +240,7 @@ function Profile() {
       return;
     }
     setUploading(true);
+    reportSaving();
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
       const path = `${user.id}/avatar-${Date.now()}.${ext}`;
@@ -259,7 +256,7 @@ function Profile() {
         .eq("id", user.id);
       if (updErr) throw updErr;
       qc.invalidateQueries({ queryKey: ["profile"] });
-      toast.success(t("save"));
+      reportSaved();
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -304,23 +301,9 @@ function Profile() {
   return (
     <main className="max-w-3xl mx-auto px-6 md:px-10 py-10">
       <header className="mb-8">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-mono uppercase tracking-[0.3em] text-foreground/50">
-            {t("my_page_kicker")}
-          </span>
-          {saveStatus !== "idle" && (
-            <div className={`flex items-center gap-2 text-sm transition-opacity ${
-              saveStatus === "saving" ? "text-foreground/40" : ""
-            }`} style={saveStatus === "saved" ? { color: "var(--gold)" } : undefined}>
-              {saveStatus === "saving" ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Check className="h-3.5 w-3.5" />
-              )}
-              <span>{saveStatus === "saving" ? t("saving") : t("saved")}</span>
-            </div>
-          )}
-        </div>
+        <span className="text-xs font-mono uppercase tracking-[0.3em] text-foreground/50">
+          {t("my_page_kicker")}
+        </span>
         <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight">{t("my_page_title")}</h1>
         <p className="text-foreground/45 mt-2">{t("my_page_sub")}</p>
       </header>

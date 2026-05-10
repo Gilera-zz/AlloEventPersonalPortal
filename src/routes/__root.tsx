@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { AppShell } from "@/components/AppShell";
+import { SaveStatusProvider, SaveStatusIndicator } from "@/components/SaveStatusProvider";
 import appCss from "../styles.css?url";
 
 const queryClient = new QueryClient();
@@ -83,8 +84,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <AuthProvider>
-          <AppShellGuard />
-          <Toaster />
+          <SaveStatusProvider>
+            <AppShellGuard />
+            <SaveStatusIndicator />
+            <Toaster />
+          </SaveStatusProvider>
         </AuthProvider>
       </I18nProvider>
     </QueryClientProvider>
