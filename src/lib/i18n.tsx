@@ -261,6 +261,36 @@ const dict = {
   },
   profile_incomplete_cta: { sv: "Gå till profilinställningar", en: "Go to profile settings" },
 
+  // Admin nav
+  nav_manage_projects: { sv: "Hantera Projekt", en: "Manage Projects" },
+  nav_admin_panel: { sv: "Admin Panel", en: "Admin Panel" },
+  nav_staff_list: { sv: "Personal-lista", en: "Staff List" },
+
+  // Admin user management
+  admin_users_title: { sv: "Användarhantering", en: "User Management" },
+  admin_users_kicker: { sv: "Admin Panel", en: "Admin Panel" },
+  admin_users_subtitle: { sv: "Hantera roller och behörigheter för registrerade användare.", en: "Manage roles and permissions for registered users." },
+  make_admin: { sv: "Gör till Admin", en: "Make Admin" },
+  remove_admin: { sv: "Ta bort Admin", en: "Remove Admin" },
+  role_updated: { sv: "Roll uppdaterad", en: "Role updated" },
+  access_denied: { sv: "Åtkomst nekad", en: "Access denied" },
+  no_users: { sv: "Inga registrerade användare.", en: "No registered users." },
+  search_users: { sv: "Sök användare…", en: "Search users…" },
+  role_admin: { sv: "Admin", en: "Admin" },
+  role_crew: { sv: "Crew", en: "Crew" },
+
+  // Admin staff list
+  staff_list_title: { sv: "Personal", en: "Staff" },
+  staff_list_kicker: { sv: "Personal-lista", en: "Staff List" },
+  staff_list_subtitle: { sv: "Alla registrerade medarbetare.", en: "All registered staff members." },
+  staff_confirmed: { sv: "Personal bekräftad", en: "Staff confirmed" },
+  staff_unconfirmed: { sv: "Bekräftelse borttagen", en: "Confirmation removed" },
+  no_staff: { sv: "Ingen personal registrerad.", en: "No staff registered." },
+
+  // Midnight Luxe toasts
+  toast_saved: { sv: "Sparat ✓", en: "Saved ✓" },
+  availability_saved: { sv: "Tillgänglighet uppdaterad", en: "Availability updated" },
+
 } as const;
 
 type Key = keyof typeof dict;

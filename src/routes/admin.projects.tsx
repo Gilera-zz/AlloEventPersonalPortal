@@ -262,8 +262,12 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from("project_interests").update({ status }).eq("id", id);
       if (error) throw error;
+      return status;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["project-applicants", projectId] }),
+    onSuccess: (status) => {
+      toast.success(status === "confirmed" ? t("staff_confirmed") : t("staff_unconfirmed"));
+      qc.invalidateQueries({ queryKey: ["project-applicants", projectId] });
+    },
     onError: (e: any) => toast.error(e.message),
   });
 

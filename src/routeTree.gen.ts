@@ -21,6 +21,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 import { Route as AdminProjectsRouteImport } from './routes/admin.projects'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 
 const ProjectsRoute = ProjectsRouteImport.update({
   id: '/projects',
@@ -82,6 +84,16 @@ const AdminProjectsRoute = AdminProjectsRouteImport.update({
   path: '/admin/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminStaffRoute = AdminStaffRouteImport.update({
+  id: '/admin/staff',
+  path: '/admin/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -94,6 +106,8 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/admin/projects': typeof AdminProjectsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects/': typeof ProjectsIndexRoute
 }
@@ -108,6 +122,8 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsIndexRoute
   '/admin/projects': typeof AdminProjectsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
 export interface FileRoutesById {
@@ -122,6 +138,8 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/admin/projects': typeof AdminProjectsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects/': typeof ProjectsIndexRoute
 }
@@ -138,6 +156,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/projects'
     | '/admin/projects'
+    | '/admin/users'
+    | '/admin/staff'
     | '/projects/$projectId'
     | '/projects/'
   fileRoutesByTo: FileRoutesByTo
@@ -152,6 +172,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/projects'
     | '/admin/projects'
+    | '/admin/users'
+    | '/admin/staff'
     | '/projects/$projectId'
   id:
     | '__root__'
@@ -165,6 +187,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/projects'
     | '/admin/projects'
+    | '/admin/users'
+    | '/admin/staff'
     | '/projects/$projectId'
     | '/projects/'
   fileRoutesById: FileRoutesById
@@ -180,6 +204,8 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
   AdminProjectsRoute: typeof AdminProjectsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminStaffRoute: typeof AdminStaffRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -268,6 +294,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/staff': {
+      id: '/admin/staff'
+      path: '/admin/staff'
+      fullPath: '/admin/staff'
+      preLoaderRoute: typeof AdminStaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -296,6 +336,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   ProjectsRoute: ProjectsRouteWithChildren,
   AdminProjectsRoute: AdminProjectsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminStaffRoute: AdminStaffRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -49,7 +49,10 @@ function Availability() {
         if (error) throw error;
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["availability"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["availability"] });
+      toast.success(t("toast_saved"));
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
