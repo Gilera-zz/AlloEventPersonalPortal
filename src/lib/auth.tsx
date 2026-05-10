@@ -23,7 +23,7 @@ async function fetchUserRole(userId: string): Promise<string> {
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (roleRow?.role === "admin") return "admin";
+  if (roleRow?.role?.toLowerCase() === "admin") return "admin";
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -31,9 +31,9 @@ async function fetchUserRole(userId: string): Promise<string> {
     .eq("id", userId)
     .maybeSingle<{ role: string | null }>();
 
-  if (profile?.role === "admin") return "admin";
+  if (profile?.role?.toLowerCase() === "admin") return "admin";
 
-  return roleRow?.role ?? "crew";
+  return roleRow?.role?.toLowerCase() ?? "crew";
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = userRole === "admin";
 
   const doFetchRole = useCallback((userId: string) => {
-    fetchUserRole(userId).then(setUserRole).catch(() => setUserRole("crew"));
+    return fetchUserRole(userId).then(setUserRole).catch(() => setUserRole("crew"));
   }, []);
 
   const refreshRole = useCallback(() => {
@@ -52,30 +52,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session, doFetchRole]);
 
   useEffect(() => {
-    const refresh = (s: Session | null) => {
-      setSession(s);
-      if (s?.user) {
-        setTimeout(() => doFetchRole(s.user.id), 0);
-      } else {
-        setUserRole("crew");
-      }
-    };
+    let mounted = true;
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      if (!mounted) return;
       if (event === "SIGNED_OUT") {
         setSession(null);
         setUserRole("crew");
       } else if (s) {
-        refresh(s);
+        setSession(s);
+        if (s.user) {
+          setTimeout(() => { if (mounted) doFetchRole(s.user.id); }, 0);
+        } else {
+          setUserRole("crew");
+        }
       }
     });
 
-    supabase.auth.getSession().then(({ data }) => {
-      refresh(data.session);
-      setLoading(false);
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!mounted) return;
+      setSession(data.session);
+      if (data.session?.user) {
+        await doFetchRole(data.session.user.id);
+      }
+      if (mounted) setLoading(false);
     });
 
-    return () => sub.subscription.unsubscribe();
+    return () => { mounted = false; sub.subscription.unsubscribe(); };
   }, [doFetchRole]);
 
   return (
