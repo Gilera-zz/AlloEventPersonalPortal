@@ -18,7 +18,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
-import { Loader2, Upload, X, Award, Check, Plus } from "lucide-react";
+import { Loader2, Upload, X, Award, Check, Plus, Briefcase } from "lucide-react";
 import { useSaveStatus } from "@/components/SaveStatusProvider";
 
 export const Route = createFileRoute("/profile")({
@@ -26,6 +26,15 @@ export const Route = createFileRoute("/profile")({
 });
 
 const CLOTHING_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"] as const;
+
+const PREDEFINED_ROLES = [
+  "Eventpersonal",
+  "Flytt och transport",
+  "Logistikarbetare",
+  "Servering",
+  "Sampling",
+  "Flytthjälp",
+] as const;
 
 function generatePersonalId(): string {
   const num = Math.floor(1000 + Math.random() * 9000);
@@ -74,12 +83,14 @@ function Profile() {
   const [form, setForm] = useState<ProfileForm>(EMPTY_FORM);
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
+  const [roles, setRoles] = useState<string[]>([]);
   const [code, setCode] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [addingSkill, setAddingSkill] = useState(false);
   const [glowingSkills, setGlowingSkills] = useState<Set<string>>(new Set());
+  const [glowingRoles, setGlowingRoles] = useState<Set<string>>(new Set());
   const { reportSaving, reportSaved, reportIdle } = useSaveStatus();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialLoadDone = useRef(false);
@@ -93,6 +104,9 @@ function Profile() {
 
   const skillsRef = useRef(skills);
   skillsRef.current = skills;
+
+  const rolesRef = useRef(roles);
+  rolesRef.current = roles;
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -127,6 +141,8 @@ function Profile() {
     });
     const rawSkills = profile.special_skills;
     setSkills(Array.isArray(rawSkills) ? rawSkills : []);
+    const rawRoles = profile.roles;
+    setRoles(Array.isArray(rawRoles) ? rawRoles : []);
   }, [profile]);
 
   useEffect(() => {
@@ -345,6 +361,48 @@ function Profile() {
     setTimeout(() => setAddingSkill(false), 600);
   }
 
+  async function saveRolesDirect(next: string[]): Promise<boolean> {
+    if (!user) return false;
+    reportSaving();
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          roles: next,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+      if (error) throw error;
+      qc.setQueryData(["profile", user.id], (old: any) =>
+        old ? { ...old, roles: next } : old,
+      );
+      reportSaved();
+      return true;
+    } catch (err: any) {
+      console.error("[Roles direct save failed]", err);
+      toast.error(t("save_failed_roles"));
+      reportIdle();
+      return false;
+    }
+  }
+
+  async function toggleRole(role: string) {
+    const prevRoles = [...roles];
+    const isSelected = roles.includes(role);
+    const newRoles = isSelected ? roles.filter((r) => r !== role) : [...roles, role];
+    setRoles(newRoles);
+    rolesRef.current = newRoles;
+
+    const ok = await saveRolesDirect(newRoles);
+    if (!ok) {
+      setRoles(prevRoles);
+      rolesRef.current = prevRoles;
+    } else if (!isSelected) {
+      setGlowingRoles((prev) => new Set(prev).add(role));
+      setTimeout(() => setGlowingRoles((prev) => { const n = new Set(prev); n.delete(role); return n; }), 700);
+    }
+  }
+
   return (
     <main className="max-w-3xl mx-auto px-6 md:px-10 py-10">
       <header className="mb-8">
@@ -461,6 +519,44 @@ function Profile() {
                 className="mt-2 resize-none"
               />
             </div>
+          </div>
+        </fieldset>
+
+        {/* Mina Roller */}
+        <fieldset className="glass rounded-xl p-6">
+          <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 px-2 -ml-2">
+            <Briefcase className="inline h-4 w-4 mr-1 -mt-0.5" />
+            {t("my_roles")}
+          </legend>
+          <p className="text-xs text-foreground/35 mt-2 mb-4">{t("my_roles_help")}</p>
+
+          <div className="flex flex-wrap gap-2">
+            {PREDEFINED_ROLES.map((role) => {
+              const selected = roles.includes(role);
+              return (
+                <button
+                  key={role}
+                  type="button"
+                  onClick={() => toggleRole(role)}
+                  className={`inline-flex items-center rounded-full px-4 py-2 text-sm font-medium border transition-colors cursor-pointer ${glowingRoles.has(role) ? "animate-gold-glow" : ""}`}
+                  style={
+                    selected
+                      ? {
+                          backgroundColor: "rgba(212, 165, 116, 0.15)",
+                          borderColor: "rgba(212, 165, 116, 0.5)",
+                          color: "var(--gold)",
+                        }
+                      : {
+                          backgroundColor: "rgba(255, 255, 255, 0.03)",
+                          borderColor: "rgba(255, 255, 255, 0.08)",
+                          color: "rgba(245, 240, 235, 0.45)",
+                        }
+                  }
+                >
+                  {role}
+                </button>
+              );
+            })}
           </div>
         </fieldset>
 
