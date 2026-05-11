@@ -57,7 +57,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-const PUBLIC_PATHS = ["/", "/auth", "/about", "/privacy"];
+const PUBLIC_PATHS = ["/", "/auth", "/about", "/privacy", "/reset-password"];
 
 function AppShellGuard() {
   const { user, loading } = useAuth();

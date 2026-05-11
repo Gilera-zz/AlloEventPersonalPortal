@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as MyProjectsRouteImport } from './routes/my-projects'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AvailabilityRouteImport } from './routes/availability'
@@ -37,6 +38,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyProjectsRoute = MyProjectsRouteImport.update({
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/projects': typeof AdminProjectsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsIndexRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/projects': typeof AdminProjectsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/projects': typeof AdminProjectsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/profile'
     | '/projects'
+    | '/reset-password'
     | '/admin/projects'
     | '/admin/users'
     | '/admin/staff'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/profile'
     | '/projects'
+    | '/reset-password'
     | '/admin/projects'
     | '/admin/users'
     | '/admin/staff'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/profile'
     | '/projects'
+    | '/reset-password'
     | '/admin/projects'
     | '/admin/users'
     | '/admin/staff'
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
+  ResetPasswordRoute: typeof ResetPasswordRoute
   AdminProjectsRoute: typeof AdminProjectsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminStaffRoute: typeof AdminStaffRoute
@@ -264,6 +277,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -335,6 +355,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
   ProjectsRoute: ProjectsRouteWithChildren,
+  ResetPasswordRoute: ResetPasswordRoute,
   AdminProjectsRoute: AdminProjectsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminStaffRoute: AdminStaffRoute,
