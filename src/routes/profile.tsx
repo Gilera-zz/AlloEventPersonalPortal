@@ -106,6 +106,7 @@ function Profile() {
   const { reportSaving, reportSaved, reportIdle } = useSaveStatus();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialLoadDone = useRef(false);
+  const skipNextSave = useRef(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const immediateRef = useRef(false);
   const gdprSetRef = useRef(false);
@@ -121,13 +122,15 @@ function Profile() {
     queryKey: ["profile", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle();
+      if (error) throw error;
       return data;
     },
   });
 
   useEffect(() => {
     if (!profile || initialLoadDone.current) return;
+    skipNextSave.current = true;
     initialLoadDone.current = true;
     setForm({
       full_name: profile.full_name ?? "",
@@ -185,24 +188,28 @@ function Profile() {
         await supabase.auth.updateUser({ data: { gdpr_consent: true, gdpr_consent_at: new Date().toISOString() } });
         gdprSetRef.current = true;
       }
-      const { error } = await supabase
+      const payload = {
+        ...f,
+        drivers_license: serializeCerts(c),
+        skills: s,
+        special_skills: s,
+        updated_at: new Date().toISOString(),
+      };
+      const { data: saved, error } = await supabase
         .from("profiles")
-        .update({
-          ...f,
-          drivers_license: serializeCerts(c),
-          skills: s,
-          special_skills: s,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
+        .update(payload)
+        .eq("id", user.id)
+        .select()
+        .single();
       if (error) throw error;
       qc.setQueryData(["profile", user.id], (old: any) =>
-        old ? { ...old, skills: s, special_skills: s } : old,
+        old ? { ...old, ...saved } : saved,
       );
       reportSaved();
     } catch (err: any) {
+      console.error("[Profile save failed]", err);
       reportIdle();
-      toast.error(err.message);
+      toast.error(err.message || "Profile could not be saved");
     }
   }, [user, reportSaving, reportSaved, reportIdle, t, qc]);
 
@@ -211,14 +218,18 @@ function Profile() {
 
   useEffect(() => {
     if (!initialLoadDone.current || !user) return;
+    if (skipNextSave.current) {
+      skipNextSave.current = false;
+      return;
+    }
 
     clearTimeout(debounceTimer.current);
     const delay = immediateRef.current ? 0 : 500;
     immediateRef.current = false;
 
-    debounceTimer.current = setTimeout(doAutoSave, delay);
+    debounceTimer.current = setTimeout(() => doAutoSaveRef.current(), delay);
     return () => clearTimeout(debounceTimer.current);
-  }, [form, certs, skills, doAutoSave, user]);
+  }, [form, certs, skills, user]);
 
   useEffect(() => {
     const flush = () => {
@@ -280,6 +291,7 @@ function Profile() {
       qc.invalidateQueries({ queryKey: ["profile"] });
       reportSaved();
     } catch (err: any) {
+      console.error("[Avatar upload failed]", err);
       toast.error(err.message);
     } finally {
       setUploading(false);
@@ -303,6 +315,7 @@ function Profile() {
       if (error) throw error;
       qc.invalidateQueries({ queryKey: ["profile"] });
     } catch (err: any) {
+      console.error("[Avatar remove failed]", err);
       toast.error(err.message);
     } finally {
       setUploading(false);
