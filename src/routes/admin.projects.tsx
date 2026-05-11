@@ -32,6 +32,9 @@ import {
   Save,
   Languages,
   Loader2,
+  UserPlus,
+  AlertTriangle,
+  Search,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
@@ -52,6 +55,7 @@ interface ApplicantProfile {
   special_skills: string[] | null;
   clothing_size: string | null;
   occupation: string | null;
+  roles: string[] | null;
 }
 
 interface ApplicantRow {
@@ -62,7 +66,7 @@ interface ApplicantRow {
   profiles: ApplicantProfile | null;
 }
 
-const TRANSLATABLE_FIELDS = ["title", "description", "location", "dress_code", "staff_instructions"] as const;
+const TRANSLATABLE_FIELDS = ["title", "description", "location", "dress_code", "staff_instructions", "meeting_point", "salary_info", "requirements"] as const;
 
 function AdminProjects() {
   const { user } = useAuth();
@@ -71,7 +75,7 @@ function AdminProjects() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const empty = { title: "", description: "", category: "", location: "", starts_at: "", ends_at: "", dress_code: "", positions_needed: 1, image_url: "" };
+  const empty = { title: "", description: "", category: "", location: "", starts_at: "", ends_at: "", dress_code: "", positions_needed: 1, image_url: "", meeting_point: "", salary_info: "", requirements: "" };
   const [form, setForm] = useState<any>(empty);
   const [uploading, setUploading] = useState(false);
 
@@ -98,10 +102,18 @@ function AdminProjects() {
   const create = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("projects").insert({
-        ...form,
-        positions_needed: Number(form.positions_needed) || 1,
+        title: form.title,
+        description: form.description || null,
+        category: form.category || null,
+        location: form.location || null,
+        starts_at: form.starts_at,
         ends_at: form.ends_at || null,
+        dress_code: form.dress_code || null,
+        positions_needed: Number(form.positions_needed) || 1,
         image_url: form.image_url || null,
+        meeting_point: form.meeting_point || null,
+        salary_info: form.salary_info || null,
+        requirements: form.requirements || null,
         created_by: user!.id,
       });
       if (error) throw error;
@@ -140,8 +152,17 @@ function AdminProjects() {
               <Input type="file" accept="image/*" disabled={uploading} onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} />
               {form.image_url && <img src={form.image_url} alt="" className="mt-2 h-16 rounded object-cover" />}
             </div>
+            <div>
+              <Label>{t("meeting_point")}</Label>
+              <Input value={form.meeting_point} onChange={(e) => setForm({ ...form, meeting_point: e.target.value })} placeholder={t("meeting_point_help")} />
+            </div>
+            <div>
+              <Label>{t("salary_info")}</Label>
+              <Input value={form.salary_info} onChange={(e) => setForm({ ...form, salary_info: e.target.value })} placeholder={t("salary_info_help")} />
+            </div>
           </div>
           <div><Label>{t("description")}</Label><Textarea rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+          <div><Label>{t("requirements")}</Label><Textarea rows={3} value={form.requirements} onChange={(e) => setForm({ ...form, requirements: e.target.value })} placeholder={t("requirements_help")} /></div>
           <div className="flex justify-end"><Button type="submit" disabled={create.isPending || uploading}>{t("create")}</Button></div>
         </form>
       )}
@@ -176,14 +197,40 @@ function ProjectAdminPanel({ project }: { project: any }) {
   const { t } = useI18n();
   return (
     <div className="border-t border-white/[0.08] bg-white/[0.02] p-4">
+      {/* Project details summary */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+        {project.meeting_point && (
+          <div className="glass rounded-md px-3 py-2">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{t("meeting_point")}</div>
+            <div className="text-sm mt-0.5">{project.meeting_point}</div>
+          </div>
+        )}
+        {project.salary_info && (
+          <div className="glass rounded-md px-3 py-2">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{t("salary_info")}</div>
+            <div className="text-sm mt-0.5">{project.salary_info}</div>
+          </div>
+        )}
+        {project.requirements && (
+          <div className="glass rounded-md px-3 py-2">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{t("requirements")}</div>
+            <div className="text-sm mt-0.5">{project.requirements}</div>
+          </div>
+        )}
+      </div>
+
       <Tabs defaultValue="applicants" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="applicants">{t("tab_applicants")}</TabsTrigger>
+          <TabsTrigger value="staff">{t("tab_staff")}</TabsTrigger>
           <TabsTrigger value="logistics">{t("tab_logistics")}</TabsTrigger>
           <TabsTrigger value="briefing">{t("tab_briefing")}</TabsTrigger>
         </TabsList>
         <TabsContent value="applicants">
           <ApplicantsPanel projectId={project.id} />
+        </TabsContent>
+        <TabsContent value="staff">
+          <StaffBookingPanel project={project} />
         </TabsContent>
         <TabsContent value="logistics">
           <LogisticsPanel projectId={project.id} />
@@ -225,7 +272,7 @@ function useApplicants(projectId: string) {
               special_skills: Array.isArray(row.profiles.special_skills) ? row.profiles.special_skills : null,
               clothing_size: row.profiles.clothing_size ?? null,
               occupation: row.profiles.occupation ?? null,
-              drivers_license: row.profiles.drivers_license ?? null,
+              roles: Array.isArray(row.profiles.roles) ? row.profiles.roles : null,
             }
           : null,
       })) as ApplicantRow[];
@@ -297,7 +344,7 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
                         className="h-1.5 w-1.5 rounded-full"
                         style={{ backgroundColor: confirmed ? "var(--gold)" : "var(--muted-foreground)" }}
                       />
-                      {confirmed ? t("status_confirmed") : t("status_interested")}
+                      {confirmed ? t("status_confirmed") : a.status === "pending" ? t("status_pending") : t("status_interested")}
                     </span>
                   </div>
                   <div className="text-xs text-foreground/35 truncate">
@@ -326,6 +373,264 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
   );
 }
 
+function StaffBookingPanel({ project }: { project: any }) {
+  const { t } = useI18n();
+  const qc = useQueryClient();
+  const [bookingOpen, setBookingOpen] = useState(false);
+
+  const { data: applicants } = useApplicants(project.id);
+
+  const assignedStaff = useMemo(
+    () => (applicants ?? []).filter((a) => a.status === "confirmed" || a.status === "pending"),
+    [applicants],
+  );
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/40">
+          {t("assigned_staff")}
+        </div>
+        <Button size="sm" onClick={() => setBookingOpen(true)}>
+          <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+          {t("book_staff")}
+        </Button>
+      </div>
+
+      {assignedStaff.length === 0 && (
+        <p className="text-sm text-foreground/40">{t("no_applicants")}</p>
+      )}
+
+      <ul className="space-y-2">
+        {assignedStaff.map((a) => {
+          const displayName = a.profiles?.full_name || a.profiles?.email || a.user_id.slice(0, 8);
+          const isPending = a.status === "pending";
+          return (
+            <li key={a.id} className="flex items-center gap-3 glass rounded-md px-3 py-2">
+              <UserAvatar url={a.profiles?.avatar_url} name={a.profiles?.full_name} email={a.profiles?.email} className="h-8 w-8 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-medium truncate block">{displayName}</span>
+                {a.profiles?.roles && a.profiles.roles.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-0.5">
+                    {a.profiles.roles.map((r) => (
+                      <span key={r} className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "rgba(212, 165, 116, 0.08)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.2)" }}>
+                        {r}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium shrink-0"
+                style={isPending
+                  ? { backgroundColor: "rgba(255, 255, 255, 0.06)", color: "var(--muted-foreground)", border: "1px solid rgba(255, 255, 255, 0.08)" }
+                  : { backgroundColor: "rgba(212, 165, 116, 0.12)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }
+                }
+              >
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: isPending ? "var(--muted-foreground)" : "var(--gold)" }} />
+                {isPending ? t("status_pending") : t("status_confirmed")}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      {bookingOpen && (
+        <StaffBookingDialog
+          project={project}
+          existingUserIds={(applicants ?? []).map((a) => a.user_id)}
+          onClose={() => {
+            setBookingOpen(false);
+            qc.invalidateQueries({ queryKey: ["project-applicants", project.id] });
+            qc.invalidateQueries({ queryKey: ["admin-projects"] });
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function StaffBookingDialog({
+  project,
+  existingUserIds,
+  onClose,
+}: {
+  project: any;
+  existingUserIds: string[];
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [sending, setSending] = useState(false);
+
+  const { data: allStaff } = useQuery({
+    queryKey: ["booking-staff-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, phone, avatar_url, roles, special_skills, occupation")
+        .order("full_name", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: conflicts } = useQuery({
+    queryKey: ["booking-conflicts", project.id],
+    queryFn: async () => {
+      if (!project.starts_at) return new Set<string>();
+      const { data, error } = await supabase
+        .from("project_interests")
+        .select("user_id, projects!project_interests_project_id_fkey(starts_at, ends_at)")
+        .eq("status", "confirmed")
+        .neq("project_id", project.id);
+      if (error) return new Set<string>();
+      const pStart = new Date(project.starts_at).getTime();
+      const pEnd = project.ends_at ? new Date(project.ends_at).getTime() : pStart;
+      const conflicting = new Set<string>();
+      for (const row of data ?? []) {
+        const other = row.projects as any;
+        if (!other?.starts_at) continue;
+        const oStart = new Date(other.starts_at).getTime();
+        const oEnd = other.ends_at ? new Date(other.ends_at).getTime() : oStart;
+        if (pStart <= oEnd && pEnd >= oStart) {
+          conflicting.add(row.user_id);
+        }
+      }
+      return conflicting;
+    },
+  });
+
+  const available = useMemo(() => {
+    return (allStaff ?? []).filter((s) => {
+      if (existingUserIds.includes(s.id)) return false;
+      if (!search.trim()) return true;
+      const q = search.toLowerCase();
+      return (
+        s.full_name?.toLowerCase().includes(q) ||
+        s.email?.toLowerCase().includes(q) ||
+        s.occupation?.toLowerCase().includes(q) ||
+        (s.roles ?? []).some((r: string) => r.toLowerCase().includes(q))
+      );
+    });
+  }, [allStaff, existingUserIds, search]);
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleSend = async () => {
+    if (selected.size === 0) return;
+    setSending(true);
+    try {
+      const inserts = Array.from(selected).map((user_id) => ({
+        user_id,
+        project_id: project.id,
+        status: "pending",
+      }));
+      const { error } = await supabase.from("project_interests").insert(inserts);
+      if (error) throw error;
+      toast.success(t("requests_sent"));
+      onClose();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{t("book_staff_title")}</DialogTitle>
+          <p className="text-sm text-foreground/45 mt-1">{t("book_staff_subtitle")}</p>
+        </DialogHeader>
+
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/35" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("search_users")}
+            className="pl-10"
+          />
+        </div>
+
+        <div className="space-y-1 max-h-64 overflow-y-auto">
+          {available.map((s) => {
+            const isSelected = selected.has(s.id);
+            const hasConflict = conflicts?.has(s.id);
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => toggleSelect(s.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-left transition-colors ${
+                  isSelected ? "bg-white/[0.06] border border-white/[0.12]" : "hover:bg-white/[0.03] border border-transparent"
+                }`}
+              >
+                <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${
+                  isSelected ? "border-[var(--gold)] bg-[rgba(212,165,116,0.15)]" : "border-white/[0.2]"
+                }`}>
+                  {isSelected && <CheckCircle2 className="h-3 w-3" style={{ color: "var(--gold)" }} />}
+                </div>
+                <UserAvatar url={s.avatar_url} name={s.full_name} email={s.email} className="h-8 w-8 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate">{s.full_name || s.email || "—"}</div>
+                  {(s.roles ?? []).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-0.5">
+                      {(s.roles as string[]).map((r) => (
+                        <span key={r} className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "rgba(212, 165, 116, 0.08)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.2)" }}>
+                          {r}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {hasConflict && (
+                  <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 shrink-0" title={t("conflict_warning")}>
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                  </span>
+                )}
+              </button>
+            );
+          })}
+          {available.length === 0 && (
+            <p className="text-sm text-foreground/40 text-center py-4">{t("no_staff")}</p>
+          )}
+        </div>
+
+        {selected.size > 0 && conflicts && Array.from(selected).some((id) => conflicts.has(id)) && (
+          <div className="flex items-start gap-2 mt-3 p-3 rounded-md" style={{ backgroundColor: "rgba(251, 191, 36, 0.08)", border: "1px solid rgba(251, 191, 36, 0.2)" }}>
+            <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-400">{t("conflict_warning")}</p>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.08]">
+          <span className="text-xs text-foreground/40">
+            {selected.size} {t("selected_count")}
+          </span>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={onClose}>{t("cancel")}</Button>
+            <Button onClick={handleSend} disabled={selected.size === 0 || sending}>
+              {sending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <UserPlus className="h-4 w-4 mr-1.5" />}
+              {t("send_requests")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function ApplicantProfileModal({
   profile,
   onOpenChange,
@@ -337,6 +642,7 @@ function ApplicantProfileModal({
   const open = !!profile;
   const rawSkills = profile?.special_skills ?? profile?.skills;
   const skills = Array.isArray(rawSkills) ? rawSkills : [];
+  const roles = Array.isArray(profile?.roles) ? profile.roles : [];
   const displayName = profile?.full_name || profile?.email || "—";
 
   return (
@@ -382,6 +688,25 @@ function ApplicantProfileModal({
               )}
             </div>
           </section>
+
+          {roles.length > 0 && (
+            <section>
+              <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
+                {t("profile_modal_roles")}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {roles.map((r) => (
+                  <span
+                    key={r}
+                    className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                    style={{ backgroundColor: "rgba(212, 165, 116, 0.08)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }}
+                  >
+                    {r}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section>
             <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">

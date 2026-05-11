@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex h-full flex-col">
       {/* Logo & brand — logo acts as "door" back to main website */}
       <div className="px-6 py-8 flex flex-col items-center border-b border-white/[0.08]">
-        <a href="https://alloevent.se" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
+        <a href="https://alloevent.se" target="_self" onClick={() => setOpen(false)}>
           <img src={logo} alt="Allo Event" className="h-10 w-auto" />
         </a>
         <span className="mt-2 text-[10px] font-heading font-medium uppercase tracking-[0.35em] text-foreground/60">
@@ -129,7 +129,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 border-b border-white/[0.08] bg-background/85 backdrop-blur-lg flex items-center justify-between px-4">
-        <a href="https://alloevent.se" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+        <a href="https://alloevent.se" target="_self" className="flex items-center gap-2">
           <img src={logo} alt="Allo Event" className="h-7 w-auto" />
         </a>
         <div className="flex items-center gap-2">

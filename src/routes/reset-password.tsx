@@ -72,7 +72,7 @@ function ResetPasswordPage() {
       <div className="absolute top-4 right-4"><LangToggle /></div>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <a href="https://alloevent.se" target="_blank" rel="noopener noreferrer"><img src={logo} alt="Allo Event" className="h-14 w-auto mx-auto mb-4" /></a>
+          <a href="https://alloevent.se" target="_self"><img src={logo} alt="Allo Event" className="h-14 w-auto mx-auto mb-4" /></a>
           <p className="text-sm text-foreground/40 font-mono uppercase tracking-[0.3em]">{t("welcome_kicker")}</p>
         </div>
         <div className="glass rounded-xl p-6">

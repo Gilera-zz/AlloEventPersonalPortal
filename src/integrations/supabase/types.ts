@@ -232,7 +232,13 @@ export type Database = {
           image_url: string | null
           location: string | null
           location_en: string | null
+          meeting_point: string | null
+          meeting_point_en: string | null
           positions_needed: number | null
+          requirements: string | null
+          requirements_en: string | null
+          salary_info: string | null
+          salary_info_en: string | null
           staff_instructions: string | null
           staff_instructions_en: string | null
           starts_at: string
@@ -252,7 +258,13 @@ export type Database = {
           image_url?: string | null
           location?: string | null
           location_en?: string | null
+          meeting_point?: string | null
+          meeting_point_en?: string | null
           positions_needed?: number | null
+          requirements?: string | null
+          requirements_en?: string | null
+          salary_info?: string | null
+          salary_info_en?: string | null
           staff_instructions?: string | null
           staff_instructions_en?: string | null
           starts_at: string
@@ -272,7 +284,13 @@ export type Database = {
           image_url?: string | null
           location?: string | null
           location_en?: string | null
+          meeting_point?: string | null
+          meeting_point_en?: string | null
           positions_needed?: number | null
+          requirements?: string | null
+          requirements_en?: string | null
+          salary_info?: string | null
+          salary_info_en?: string | null
           staff_instructions?: string | null
           staff_instructions_en?: string | null
           starts_at?: string

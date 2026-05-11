@@ -18,7 +18,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
-import { Loader2, Upload, X, Award, Check, Plus, Briefcase } from "lucide-react";
+import { Loader2, Upload, X, Award, Check, Plus, Briefcase, CalendarOff, Trash2 } from "lucide-react";
 import { useSaveStatus } from "@/components/SaveStatusProvider";
 
 export const Route = createFileRoute("/profile")({
@@ -697,6 +697,9 @@ function Profile() {
           </div>
         </fieldset>
 
+        {/* Unavailable dates */}
+        <UnavailableDatesSection />
+
         {/* Payout */}
         <fieldset className="glass rounded-xl p-6">
           <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 px-2 -ml-2">
@@ -754,6 +757,132 @@ function Profile() {
         </p>
       </footer>
     </main>
+  );
+}
+
+function UnavailableDatesSection() {
+  const { user } = useAuth();
+  const { t } = useI18n();
+  const qc = useQueryClient();
+  const [newDate, setNewDate] = useState("");
+
+  const { data: unavailableDates } = useQuery({
+    queryKey: ["unavailable-dates", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("availability")
+        .select("*")
+        .eq("user_id", user!.id)
+        .eq("available", false)
+        .order("date", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const addUnavailable = useMutation({
+    mutationFn: async (date: string) => {
+      const existing = await supabase
+        .from("availability")
+        .select("id")
+        .eq("user_id", user!.id)
+        .eq("date", date)
+        .maybeSingle();
+
+      if (existing.data) {
+        const { error } = await supabase
+          .from("availability")
+          .update({ available: false })
+          .eq("id", existing.data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("availability")
+          .insert({ user_id: user!.id, date, available: false });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success(t("unavailable_saved"));
+      setNewDate("");
+      qc.invalidateQueries({ queryKey: ["unavailable-dates"] });
+      qc.invalidateQueries({ queryKey: ["availability"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const removeUnavailable = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("availability").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("unavailable_removed"));
+      qc.invalidateQueries({ queryKey: ["unavailable-dates"] });
+      qc.invalidateQueries({ queryKey: ["availability"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const futureDates = (unavailableDates ?? []).filter(
+    (d) => new Date(d.date) >= new Date(new Date().toISOString().split("T")[0])
+  );
+
+  return (
+    <fieldset className="glass rounded-xl p-6">
+      <legend className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 px-2 -ml-2">
+        <CalendarOff className="inline h-4 w-4 mr-1 -mt-0.5" />
+        {t("unavailable_dates")}
+      </legend>
+      <p className="text-xs text-foreground/35 mt-2 mb-4">{t("unavailable_dates_help")}</p>
+
+      <div className="flex gap-2 mb-4">
+        <Input
+          type="date"
+          value={newDate}
+          onChange={(e) => setNewDate(e.target.value)}
+          min={new Date().toISOString().split("T")[0]}
+          className="flex-1 max-w-[200px]"
+        />
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => newDate && addUnavailable.mutate(newDate)}
+          disabled={!newDate || addUnavailable.isPending}
+          variant="secondary"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          {t("add_unavailable_date")}
+        </Button>
+      </div>
+
+      {futureDates.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {futureDates.map((d) => (
+            <span
+              key={d.id}
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium border"
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.04)",
+                borderColor: "rgba(255, 255, 255, 0.1)",
+                color: "var(--foreground)",
+              }}
+            >
+              {d.date}
+              <button
+                type="button"
+                onClick={() => removeUnavailable.mutate(d.id)}
+                className="rounded-full hover:bg-white/[0.1] p-0.5 transition-colors"
+                aria-label={t("remove")}
+              >
+                <Trash2 className="h-3 w-3 text-foreground/40" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </fieldset>
   );
 }
 
