@@ -54,6 +54,8 @@ function generatePersonalId(): string {
   return `AE-${num}`;
 }
 
+let _skillSaveInFlight = false;
+
 type ProfileForm = {
   full_name: string;
   personal_id: string;
@@ -121,6 +123,7 @@ function Profile() {
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     enabled: !!user,
+    staleTime: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle();
       if (error) throw error;
@@ -150,8 +153,12 @@ function Profile() {
       bank_account: profile.bank_account ?? "",
     });
     setCerts(parseCerts(profile.drivers_license));
-    const rawSkills = profile.skills ?? profile.special_skills;
-    setSkills(Array.isArray(rawSkills) ? rawSkills : []);
+    if (!_skillSaveInFlight) {
+      const rawSkills = profile.skills ?? profile.special_skills;
+      setSkills(Array.isArray(rawSkills) ? rawSkills : []);
+    } else {
+      console.log("[Profile] Skill save in flight — keeping local skills");
+    }
   }, [profile]);
 
   useEffect(() => {
@@ -195,6 +202,7 @@ function Profile() {
         special_skills: s,
         updated_at: new Date().toISOString(),
       };
+      console.log("[AutoSave] Saving profile, skills:", s);
       const { data: saved, error } = await supabase
         .from("profiles")
         .update(payload)
@@ -202,6 +210,7 @@ function Profile() {
         .select()
         .single();
       if (error) throw error;
+      console.log("[AutoSave] Save succeeded, skills:", s);
       qc.setQueryData(["profile", user.id], (old: any) =>
         old ? { ...old, ...saved } : saved,
       );
@@ -209,12 +218,38 @@ function Profile() {
     } catch (err: any) {
       console.error("[Profile save failed]", err);
       reportIdle();
-      toast.error(err.message || "Profile could not be saved");
+      toast.error("DB Error: " + (err.message || "Profile could not be saved"));
     }
   }, [user, reportSaving, reportSaved, reportIdle, t, qc]);
 
   const doAutoSaveRef = useRef(doAutoSave);
   doAutoSaveRef.current = doAutoSave;
+
+  const saveSkillsDirectly = useCallback(async (newSkills: string[]) => {
+    if (!user) return;
+    _skillSaveInFlight = true;
+    console.log("Saving skills to DB:", newSkills);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ skills: newSkills, special_skills: newSkills, updated_at: new Date().toISOString() })
+        .eq("id", user.id);
+      if (error) {
+        console.error("[Skills save failed]", error);
+        toast.error("DB Error: " + error.message);
+        return;
+      }
+      console.log("[Skills] Saved to DB successfully:", newSkills);
+      qc.setQueryData(["profile", user.id], (old: any) =>
+        old ? { ...old, skills: newSkills, special_skills: newSkills } : old
+      );
+    } catch (err: any) {
+      console.error("[Skills save failed]", err);
+      toast.error("DB Error: " + (err.message || "Unknown error"));
+    } finally {
+      _skillSaveInFlight = false;
+    }
+  }, [user, qc]);
 
   useEffect(() => {
     if (!initialLoadDone.current || !user) return;
@@ -329,10 +364,17 @@ function Profile() {
       setSkillInput("");
       return;
     }
+    const newSkills = [...skills, v];
     setAddingSkill(true);
     immediateRef.current = true;
-    setSkills((p) => [...p, v]);
+    setSkills(newSkills);
     setSkillInput("");
+    if (user) {
+      qc.setQueryData(["profile", user.id], (old: any) =>
+        old ? { ...old, skills: newSkills, special_skills: newSkills } : old
+      );
+    }
+    saveSkillsDirectly(newSkills);
     setTimeout(() => setAddingSkill(false), 600);
   }
 
@@ -546,8 +588,15 @@ function Profile() {
                     type="button"
                     aria-label={`${t("remove")} ${s}`}
                     onClick={() => {
+                      const newSkills = skills.filter((x) => x !== s);
                       immediateRef.current = true;
-                      setSkills((p) => p.filter((x) => x !== s));
+                      setSkills(newSkills);
+                      if (user) {
+                        qc.setQueryData(["profile", user.id], (old: any) =>
+                          old ? { ...old, skills: newSkills, special_skills: newSkills } : old
+                        );
+                      }
+                      saveSkillsDirectly(newSkills);
                     }}
                     className="rounded-full hover:bg-white/[0.1] p-0.5 transition-colors"
                   >
