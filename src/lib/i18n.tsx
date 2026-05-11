@@ -309,6 +309,9 @@ const dict = {
   status_all_saved: { sv: "Alla ändringar sparade", en: "All changes saved" },
   status_save_error: { sv: "Kunde inte spara. Kontrollera din anslutning.", en: "Could not save. Check your connection." },
   save_failed_skills: { sv: "Kunde inte spara kompetenser till databasen.", en: "Could not save skills to the database." },
+  my_roles: { sv: "Mina Roller", en: "My Roles" },
+  my_roles_help: { sv: "Välj de roller du kan arbeta som.", en: "Select the roles you can work as." },
+  save_failed_roles: { sv: "Kunde inte spara roller till databasen.", en: "Could not save roles to the database." },
 
 } as const;
 

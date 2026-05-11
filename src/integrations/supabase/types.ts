@@ -86,6 +86,7 @@ export type Database = {
           personal_id: string | null
           phone: string | null
           role: string | null
+          roles: string[] | null
           skills: string[] | null
           special_skills: string[] | null
           updated_at: string
@@ -110,6 +111,7 @@ export type Database = {
           personal_id?: string | null
           phone?: string | null
           role?: string | null
+          roles?: string[] | null
           skills?: string[] | null
           special_skills?: string[] | null
           updated_at?: string
@@ -134,6 +136,7 @@ export type Database = {
           personal_id?: string | null
           phone?: string | null
           role?: string | null
+          roles?: string[] | null
           skills?: string[] | null
           special_skills?: string[] | null
           updated_at?: string
