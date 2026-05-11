@@ -27,28 +27,6 @@ export const Route = createFileRoute("/profile")({
 
 const CLOTHING_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"] as const;
 
-const CERT_KEYS = ["b_license", "forklift", "serving_permit", "hot_works"] as const;
-type CertKey = (typeof CERT_KEYS)[number];
-
-function parseCerts(raw: string | null | undefined): Record<CertKey, boolean> {
-  const base: Record<CertKey, boolean> = { b_license: false, forklift: false, serving_permit: false, hot_works: false };
-  if (!raw) return base;
-  try {
-    const parsed = JSON.parse(raw);
-    for (const k of CERT_KEYS) if (parsed[k] === true) base[k] = true;
-  } catch {
-    const lower = raw.trim().toLowerCase();
-    if (lower === "ja" || lower === "yes" || lower === "true") {
-      base.b_license = true;
-    }
-  }
-  return base;
-}
-
-function serializeCerts(certs: Record<CertKey, boolean>): string {
-  return JSON.stringify(certs);
-}
-
 function generatePersonalId(): string {
   const num = Math.floor(1000 + Math.random() * 9000);
   return `AE-${num}`;
@@ -63,7 +41,6 @@ type ProfileForm = {
   bio: string;
   experience: string;
   occupation: string;
-  drivers_license: string;
   clothing_size: string;
   ice_name: string;
   ice_phone: string;
@@ -81,7 +58,6 @@ const EMPTY_FORM: ProfileForm = {
   bio: "",
   experience: "",
   occupation: "",
-  drivers_license: "",
   clothing_size: "",
   ice_name: "",
   ice_phone: "",
@@ -100,7 +76,7 @@ function Profile() {
   const [skillInput, setSkillInput] = useState("");
   const [code, setCode] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [certs, setCerts] = useState<Record<CertKey, boolean>>({ b_license: false, forklift: false, serving_permit: false, hot_works: false });
+
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [addingSkill, setAddingSkill] = useState(false);
   const [glowingSkills, setGlowingSkills] = useState<Set<string>>(new Set());
@@ -114,8 +90,7 @@ function Profile() {
 
   const formRef = useRef(form);
   formRef.current = form;
-  const certsRef = useRef(certs);
-  certsRef.current = certs;
+
   const skillsRef = useRef(skills);
   skillsRef.current = skills;
 
@@ -143,7 +118,6 @@ function Profile() {
       bio: profile.bio ?? "",
       experience: profile.experience ?? "",
       occupation: profile.occupation ?? "",
-      drivers_license: profile.drivers_license ?? "",
       clothing_size: profile.clothing_size ?? "",
       ice_name: profile.ice_name ?? "",
       ice_phone: profile.ice_phone ?? "",
@@ -151,8 +125,7 @@ function Profile() {
       bank_clearing: profile.bank_clearing ?? "",
       bank_account: profile.bank_account ?? "",
     });
-    setCerts(parseCerts(profile.drivers_license));
-    const rawSkills = profile.skills ?? profile.special_skills;
+    const rawSkills = profile.special_skills;
     setSkills(Array.isArray(rawSkills) ? rawSkills : []);
   }, [profile]);
 
@@ -168,7 +141,6 @@ function Profile() {
   const doAutoSave = useCallback(async () => {
     if (!user) return;
     const f = formRef.current;
-    const c = certsRef.current;
 
     const errors: Record<string, string> = {};
     if (f.phone && !/^07\d{8}$/.test(f.phone.replace(/\s|-/g, "")))
@@ -191,10 +163,9 @@ function Profile() {
       }
       const payload = {
         ...f,
-        drivers_license: serializeCerts(c),
         updated_at: new Date().toISOString(),
       };
-      console.log("[AutoSave] Saving profile (form + certs)");
+      console.log("[AutoSave] Saving profile (form fields)");
       const { data: saved, error } = await supabase
         .from("profiles")
         .update(payload)
@@ -230,7 +201,7 @@ function Profile() {
 
     debounceTimer.current = setTimeout(() => doAutoSaveRef.current(), delay);
     return () => clearTimeout(debounceTimer.current);
-  }, [form, certs, user]);
+  }, [form, user]);
 
   useEffect(() => {
     const flush = () => {
@@ -501,32 +472,6 @@ function Profile() {
           </legend>
           <p className="text-xs text-foreground/35 mt-2 mb-4">{t("special_skills_help")}</p>
 
-          {/* Certificate chips */}
-          <div className="flex flex-wrap gap-2 mb-5">
-            {CERT_KEYS.map((key) => {
-              const selected = certs[key];
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => {
-                    immediateRef.current = true;
-                    setCerts((prev) => ({ ...prev, [key]: !prev[key] }));
-                  }}
-                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all cursor-pointer ${
-                    selected
-                      ? "border text-foreground"
-                      : "bg-white/[0.04] border border-white/[0.08] text-foreground/45 hover:border-white/[0.18] hover:text-foreground/70"
-                  }`}
-                  style={selected ? { backgroundColor: "rgba(212, 165, 116, 0.12)", borderColor: "rgba(212, 165, 116, 0.35)", color: "var(--gold)" } : undefined}
-                >
-                  {selected && <Check className="h-3.5 w-3.5 shrink-0" />}
-                  {t(`cert_${key}` as any)}
-                </button>
-              );
-            })}
-          </div>
-
           {/* Free-text skill input with button */}
           <div className="flex gap-2">
             <Input
@@ -538,7 +483,7 @@ function Profile() {
                   addSkill();
                 }
               }}
-              placeholder="t.ex. Scenbygge, Logistik, Bartending…"
+              placeholder="t.ex. B-Körkort, Truckkort, Logistik…"
               className="flex-1"
             />
             <Button
