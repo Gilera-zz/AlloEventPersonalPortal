@@ -5,7 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useState, useMemo } from "react";
 import { Search, Mail, Phone } from "lucide-react";
 
 export const Route = createFileRoute("/admin/staff")({
@@ -15,6 +21,14 @@ export const Route = createFileRoute("/admin/staff")({
     </RequireAuth>
   ),
 });
+
+const PREDEFINED_ROLES = [
+  "Eventpersonal",
+  "Flytt och transport",
+  "Logistikarbetare",
+  "Servering",
+  "Sampling",
+] as const;
 
 interface StaffProfile {
   id: string;
@@ -28,12 +42,17 @@ interface StaffProfile {
   clothing_size: string | null;
   skills: string[] | null;
   special_skills: string[] | null;
+  roles: string[] | null;
+  bio: string | null;
+  experience: string | null;
   created_at: string | null;
 }
 
 function AdminStaff() {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("");
+  const [profileOpen, setProfileOpen] = useState<StaffProfile | null>(null);
 
   const { data: staff, isLoading } = useQuery<StaffProfile[]>({
     queryKey: ["admin-staff-list"],
@@ -41,7 +60,7 @@ function AdminStaff() {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id, full_name, email, phone, avatar_url, role, personal_id, occupation, clothing_size, skills, special_skills, created_at"
+          "id, full_name, email, phone, avatar_url, role, personal_id, occupation, clothing_size, skills, special_skills, roles, bio, experience, created_at"
         )
         .order("full_name", { ascending: true });
       if (error) throw error;
@@ -49,16 +68,23 @@ function AdminStaff() {
     },
   });
 
-  const filtered = staff?.filter((s) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
-      s.full_name?.toLowerCase().includes(q) ||
-      s.email?.toLowerCase().includes(q) ||
-      s.personal_id?.toLowerCase().includes(q) ||
-      s.occupation?.toLowerCase().includes(q)
-    );
-  });
+  const filtered = useMemo(() => {
+    return staff?.filter((s) => {
+      if (roleFilter) {
+        const userRoles = Array.isArray(s.roles) ? s.roles : [];
+        if (!userRoles.includes(roleFilter)) return false;
+      }
+      if (!search.trim()) return true;
+      const q = search.toLowerCase();
+      return (
+        s.full_name?.toLowerCase().includes(q) ||
+        s.email?.toLowerCase().includes(q) ||
+        s.personal_id?.toLowerCase().includes(q) ||
+        s.occupation?.toLowerCase().includes(q) ||
+        (s.roles ?? []).some((r) => r.toLowerCase().includes(q))
+      );
+    });
+  }, [staff, search, roleFilter]);
 
   return (
     <main className="max-w-5xl mx-auto px-6 md:px-10 py-10">
@@ -72,14 +98,45 @@ function AdminStaff() {
         <p className="text-foreground/45 mt-2">{t("staff_list_subtitle")}</p>
       </header>
 
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/35" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("search_users")}
-          className="pl-10"
-        />
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/35" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("search_users")}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => setRoleFilter("")}
+            className="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+            style={
+              !roleFilter
+                ? { backgroundColor: "rgba(212, 165, 116, 0.15)", borderColor: "rgba(212, 165, 116, 0.5)", color: "var(--gold)" }
+                : { backgroundColor: "rgba(255, 255, 255, 0.03)", borderColor: "rgba(255, 255, 255, 0.08)", color: "rgba(245, 240, 235, 0.45)" }
+            }
+          >
+            {t("all_roles")}
+          </button>
+          {PREDEFINED_ROLES.map((role) => (
+            <button
+              key={role}
+              type="button"
+              onClick={() => setRoleFilter(roleFilter === role ? "" : role)}
+              className="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+              style={
+                roleFilter === role
+                  ? { backgroundColor: "rgba(212, 165, 116, 0.15)", borderColor: "rgba(212, 165, 116, 0.5)", color: "var(--gold)" }
+                  : { backgroundColor: "rgba(255, 255, 255, 0.03)", borderColor: "rgba(255, 255, 255, 0.08)", color: "rgba(245, 240, 235, 0.45)" }
+              }
+            >
+              {role}
+            </button>
+          ))}
+        </div>
       </div>
 
       {isLoading && (
@@ -96,10 +153,13 @@ function AdminStaff() {
         {filtered?.map((s) => {
           const rawSkills = s.special_skills ?? s.skills;
           const skills = Array.isArray(rawSkills) ? rawSkills : [];
+          const userRoles = Array.isArray(s.roles) ? s.roles : [];
           return (
-            <div
+            <button
               key={s.id}
-              className="glass rounded-xl px-5 py-4"
+              type="button"
+              onClick={() => setProfileOpen(s)}
+              className="glass rounded-xl px-5 py-4 w-full text-left hover:bg-white/[0.03] transition-colors"
             >
               <div className="flex items-center gap-4">
                 <UserAvatar
@@ -165,15 +225,27 @@ function AdminStaff() {
                   )}
                 </div>
               </div>
-              {skills.length > 0 && (
+              {(userRoles.length > 0 || skills.length > 0) && (
                 <div className="flex flex-wrap gap-1.5 mt-3 pl-15">
+                  {userRoles.map((role) => (
+                    <span
+                      key={`role-${role}`}
+                      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+                      style={{
+                        backgroundColor: "rgba(212, 165, 116, 0.12)",
+                        border: "1px solid rgba(212, 165, 116, 0.3)",
+                        color: "var(--gold)",
+                      }}
+                    >
+                      {role}
+                    </span>
+                  ))}
                   {skills.map((skill) => (
                     <span
-                      key={skill}
+                      key={`skill-${skill}`}
                       className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium"
                       style={{
                         backgroundColor: "rgba(212, 165, 116, 0.08)",
-                        borderColor: "rgba(212, 165, 116, 0.25)",
                         border: "1px solid rgba(212, 165, 116, 0.25)",
                         color: "var(--gold)",
                       }}
@@ -183,10 +255,143 @@ function AdminStaff() {
                   ))}
                 </div>
               )}
-            </div>
+            </button>
           );
         })}
       </div>
+
+      <StaffProfileModal
+        profile={profileOpen}
+        onOpenChange={(open) => !open && setProfileOpen(null)}
+      />
     </main>
+  );
+}
+
+function StaffProfileModal({
+  profile,
+  onOpenChange,
+}: {
+  profile: StaffProfile | null;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { t } = useI18n();
+  const open = !!profile;
+  const rawSkills = profile?.special_skills ?? profile?.skills;
+  const skills = Array.isArray(rawSkills) ? rawSkills : [];
+  const userRoles = Array.isArray(profile?.roles) ? profile.roles : [];
+  const displayName = profile?.full_name || profile?.email || "—";
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <UserAvatar
+              url={profile?.avatar_url}
+              name={profile?.full_name}
+              email={profile?.email}
+              className="h-12 w-12"
+            />
+            <div className="min-w-0">
+              <DialogTitle className="truncate">{displayName}</DialogTitle>
+              {profile?.occupation && (
+                <p className="text-xs text-foreground/40 mt-0.5">{profile.occupation}</p>
+              )}
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="space-y-5 mt-2">
+          <section>
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
+              {t("profile_modal_contact")}
+            </div>
+            <div className="text-sm space-y-1">
+              {profile?.email && (
+                <div className="flex items-center gap-2 text-foreground/55">
+                  <Mail className="h-4 w-4 shrink-0" />
+                  <a className="hover:underline" href={`mailto:${profile.email}`}>{profile.email}</a>
+                </div>
+              )}
+              {profile?.phone && (
+                <div className="flex items-center gap-2 text-foreground/55">
+                  <Phone className="h-4 w-4 shrink-0" />
+                  <a className="hover:underline" href={`tel:${profile.phone}`}>{profile.phone}</a>
+                </div>
+              )}
+              {!profile?.email && !profile?.phone && (
+                <p className="text-sm text-foreground/40">{t("profile_modal_empty")}</p>
+              )}
+            </div>
+          </section>
+
+          {userRoles.length > 0 && (
+            <section>
+              <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
+                {t("profile_modal_roles")}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {userRoles.map((r) => (
+                  <span
+                    key={r}
+                    className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                    style={{ backgroundColor: "rgba(212, 165, 116, 0.12)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.3)" }}
+                  >
+                    {r}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section>
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
+              {t("profile_modal_about")}
+            </div>
+            <p className="text-sm whitespace-pre-line leading-relaxed">
+              {profile?.bio || t("profile_modal_empty")}
+            </p>
+          </section>
+
+          <section>
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
+              {t("special_skills")}
+            </div>
+            {skills.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {skills.map((s) => (
+                  <span
+                    key={s}
+                    className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                    style={{ backgroundColor: "rgba(212, 165, 116, 0.08)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }}
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-foreground/40">{t("profile_modal_empty")}</p>
+            )}
+          </section>
+
+          <section>
+            <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
+              {t("profile_modal_experience")}
+            </div>
+            <p className="text-sm whitespace-pre-line leading-relaxed">
+              {profile?.experience || t("profile_modal_empty")}
+            </p>
+          </section>
+
+          {profile?.clothing_size && (
+            <section className="pt-2 border-t border-white/[0.08]">
+              <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{t("clothing_size")}</div>
+              <div className="text-sm font-medium mt-0.5">{profile.clothing_size}</div>
+            </section>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

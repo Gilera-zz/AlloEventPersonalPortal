@@ -21,6 +21,12 @@ export interface ProjectRow {
   dress_code_en?: string | null;
   positions_needed: number | null;
   image_url?: string | null;
+  meeting_point?: string | null;
+  meeting_point_en?: string | null;
+  salary_info?: string | null;
+  salary_info_en?: string | null;
+  requirements?: string | null;
+  requirements_en?: string | null;
 }
 
 export function ProjectCard({ project, action }: { project: ProjectRow; action?: React.ReactNode }) {

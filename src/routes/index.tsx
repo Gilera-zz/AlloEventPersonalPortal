@@ -19,7 +19,7 @@ function Index() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-background/85 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <a href="https://alloevent.se" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
+          <a href="https://alloevent.se" target="_self" className="flex items-center gap-3">
             <img src={logo} alt="Allo Event" className="h-9 w-auto" />
           </a>
           <div className="flex items-center gap-3">

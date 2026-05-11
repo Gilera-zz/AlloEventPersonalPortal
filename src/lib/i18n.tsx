@@ -313,6 +313,64 @@ const dict = {
   my_roles_help: { sv: "Välj de roller du kan arbeta som.", en: "Select the roles you can work as." },
   save_failed_roles: { sv: "Kunde inte spara roller till databasen.", en: "Could not save roles to the database." },
 
+  // Project form: new fields
+  meeting_point: { sv: "Samlingspunkt", en: "Meeting point" },
+  meeting_point_help: { sv: "Var ska personalen samlas?", en: "Where should staff gather?" },
+  salary_info: { sv: "Löneinformation", en: "Salary information" },
+  salary_info_help: { sv: "T.ex. timlön, OB-tillägg, utbetalningsdag.", en: "E.g. hourly rate, overtime pay, payment date." },
+  requirements: { sv: "Krav", en: "Requirements" },
+  requirements_help: { sv: "Krav på personalen för detta projekt.", en: "Staff requirements for this project." },
+
+  // Staff booking
+  book_staff: { sv: "Boka personal", en: "Book staff" },
+  book_staff_title: { sv: "Boka personal till projekt", en: "Book staff for project" },
+  book_staff_subtitle: { sv: "Välj personal att förfråga för detta projekt.", en: "Select staff to request for this project." },
+  send_requests: { sv: "Skicka förfrågningar", en: "Send requests" },
+  requests_sent: { sv: "Förfrågningar skickade", en: "Requests sent" },
+  already_assigned: { sv: "Redan tilldelad", en: "Already assigned" },
+  conflict_warning: { sv: "Varning: Personen är redan bekräftad på ett annat projekt under samma period.", en: "Warning: This person is already confirmed on another project during the same period." },
+  no_conflict: { sv: "Tillgänglig", en: "Available" },
+  selected_count: { sv: "valda", en: "selected" },
+  assigned_staff: { sv: "Tilldelad personal", en: "Assigned staff" },
+
+  // Staff filter
+  filter_by_role: { sv: "Filtrera på roll", en: "Filter by role" },
+  all_roles: { sv: "Alla roller", en: "All roles" },
+
+  // Roles display in modal
+  profile_modal_roles: { sv: "Roller", en: "Roles" },
+
+  // Assignment requests (Mina Förfrågningar)
+  my_requests: { sv: "Mina Förfrågningar", en: "My Requests" },
+  my_requests_subtitle: { sv: "Projekt du blivit tillfrågad om. Acceptera eller neka.", en: "Projects you have been requested for. Accept or decline." },
+  no_requests: { sv: "Inga förfrågningar just nu.", en: "No requests right now." },
+  accept: { sv: "Acceptera", en: "Accept" },
+  decline: { sv: "Neka", en: "Decline" },
+  request_accepted: { sv: "Förfrågan accepterad", en: "Request accepted" },
+  request_declined: { sv: "Förfrågan nekad", en: "Request declined" },
+  salary_label: { sv: "Lön", en: "Salary" },
+  time_label: { sv: "Tid", en: "Time" },
+  not_specified: { sv: "Ej angivet", en: "Not specified" },
+
+  // Availability exceptions
+  unavailable_dates: { sv: "Otillgängliga datum", en: "Unavailable dates" },
+  unavailable_dates_help: { sv: "Markera datum då du inte kan arbeta.", en: "Mark dates when you cannot work." },
+  mark_unavailable: { sv: "Markera som otillgänglig", en: "Mark as unavailable" },
+  unavailable_saved: { sv: "Otillgänglighet sparad", en: "Unavailability saved" },
+  unavailable_removed: { sv: "Otillgänglighet borttagen", en: "Unavailability removed" },
+  add_unavailable_date: { sv: "Lägg till datum", en: "Add date" },
+
+  // Time reporting
+  report_time: { sv: "Tidrapportera", en: "Report time" },
+  report_time_title: { sv: "Tidrapportering", en: "Time reporting" },
+  hours_worked: { sv: "Arbetade timmar", en: "Hours worked" },
+  time_report_sent: { sv: "Tidrapport skickad", en: "Time report submitted" },
+  submit_report: { sv: "Skicka tidrapport", en: "Submit time report" },
+  time_report_note: { sv: "Kommentar (valfritt)", en: "Comment (optional)" },
+
+  // Tab labels
+  tab_staff: { sv: "Personal", en: "Staff" },
+
 } as const;
 
 type Key = keyof typeof dict;
