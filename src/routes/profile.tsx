@@ -54,8 +54,6 @@ function generatePersonalId(): string {
   return `AE-${num}`;
 }
 
-let _skillSaveInFlight = false;
-
 type ProfileForm = {
   full_name: string;
   personal_id: string;
@@ -153,12 +151,8 @@ function Profile() {
       bank_account: profile.bank_account ?? "",
     });
     setCerts(parseCerts(profile.drivers_license));
-    if (!_skillSaveInFlight) {
-      const rawSkills = profile.skills ?? profile.special_skills;
-      setSkills(Array.isArray(rawSkills) ? rawSkills : []);
-    } else {
-      console.log("[Profile] Skill save in flight — keeping local skills");
-    }
+    const rawSkills = profile.skills ?? profile.special_skills;
+    setSkills(Array.isArray(rawSkills) ? rawSkills : []);
   }, [profile]);
 
   useEffect(() => {
@@ -218,38 +212,12 @@ function Profile() {
     } catch (err: any) {
       console.error("[Profile save failed]", err);
       reportIdle();
-      toast.error("DB Error: " + (err.message || "Profile could not be saved"));
+      toast.error(t("save_failed_skills"));
     }
   }, [user, reportSaving, reportSaved, reportIdle, t, qc]);
 
   const doAutoSaveRef = useRef(doAutoSave);
   doAutoSaveRef.current = doAutoSave;
-
-  const saveSkillsDirectly = useCallback(async (newSkills: string[]) => {
-    if (!user) return;
-    _skillSaveInFlight = true;
-    console.log("Saving skills to DB:", newSkills);
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ skills: newSkills, special_skills: newSkills, updated_at: new Date().toISOString() })
-        .eq("id", user.id);
-      if (error) {
-        console.error("[Skills save failed]", error);
-        toast.error("DB Error: " + error.message);
-        return;
-      }
-      console.log("[Skills] Saved to DB successfully:", newSkills);
-      qc.setQueryData(["profile", user.id], (old: any) =>
-        old ? { ...old, skills: newSkills, special_skills: newSkills } : old
-      );
-    } catch (err: any) {
-      console.error("[Skills save failed]", err);
-      toast.error("DB Error: " + (err.message || "Unknown error"));
-    } finally {
-      _skillSaveInFlight = false;
-    }
-  }, [user, qc]);
 
   useEffect(() => {
     if (!initialLoadDone.current || !user) return;
@@ -374,7 +342,6 @@ function Profile() {
         old ? { ...old, skills: newSkills, special_skills: newSkills } : old
       );
     }
-    saveSkillsDirectly(newSkills);
     setTimeout(() => setAddingSkill(false), 600);
   }
 
@@ -596,7 +563,6 @@ function Profile() {
                           old ? { ...old, skills: newSkills, special_skills: newSkills } : old
                         );
                       }
-                      saveSkillsDirectly(newSkills);
                     }}
                     className="rounded-full hover:bg-white/[0.1] p-0.5 transition-colors"
                   >

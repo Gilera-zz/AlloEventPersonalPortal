@@ -293,6 +293,7 @@ const dict = {
   availability_saved: { sv: "Tillgänglighet uppdaterad", en: "Availability updated" },
   status_all_saved: { sv: "Alla ändringar sparade", en: "All changes saved" },
   status_save_error: { sv: "Kunde inte spara. Kontrollera din anslutning.", en: "Could not save. Check your connection." },
+  save_failed_skills: { sv: "Kunde inte spara kompetenser till databasen.", en: "Could not save skills to the database." },
 
 } as const;
 
