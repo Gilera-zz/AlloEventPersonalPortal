@@ -33,7 +33,6 @@ const PREDEFINED_ROLES = [
   "Logistikarbetare",
   "Servering",
   "Sampling",
-  "Flytthjälp",
 ] as const;
 
 function generatePersonalId(): string {
