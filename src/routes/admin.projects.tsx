@@ -35,23 +35,6 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-const CERT_KEYS = ["b_license", "forklift", "serving_permit", "hot_works"] as const;
-type CertKey = (typeof CERT_KEYS)[number];
-
-function parseCerts(raw: string | null | undefined): Record<CertKey, boolean> {
-  const base: Record<CertKey, boolean> = { b_license: false, forklift: false, serving_permit: false, hot_works: false };
-  if (!raw) return base;
-  try {
-    const parsed = JSON.parse(raw);
-    for (const k of CERT_KEYS) if (parsed[k] === true) base[k] = true;
-  } catch {
-    const lower = raw.trim().toLowerCase();
-    if (lower === "ja" || lower === "yes" || lower === "true") {
-      base.b_license = true;
-    }
-  }
-  return base;
-}
 
 export const Route = createFileRoute("/admin/projects")({
   component: () => <RequireAuth requireAdmin><AdminProjects /></RequireAuth>,
@@ -69,7 +52,6 @@ interface ApplicantProfile {
   special_skills: string[] | null;
   clothing_size: string | null;
   occupation: string | null;
-  drivers_license: string | null;
 }
 
 interface ApplicantRow {
@@ -353,7 +335,7 @@ function ApplicantProfileModal({
 }) {
   const { t } = useI18n();
   const open = !!profile;
-  const rawSkills = profile?.skills ?? profile?.special_skills;
+  const rawSkills = profile?.special_skills ?? profile?.skills;
   const skills = Array.isArray(rawSkills) ? rawSkills : [];
   const displayName = profile?.full_name || profile?.email || "—";
 
@@ -414,34 +396,21 @@ function ApplicantProfileModal({
             <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/50 mb-2">
               {t("special_skills")}
             </div>
-            {(() => {
-              const certs = profile?.drivers_license ? parseCerts(profile.drivers_license) : null;
-              const activeCerts = certs ? CERT_KEYS.filter((k) => certs[k]) : [];
-              const hasContent = skills.length > 0 || activeCerts.length > 0;
-              if (!hasContent) return <p className="text-sm text-foreground/40">{t("profile_modal_empty")}</p>;
-              return (
-                <div className="flex flex-wrap gap-2">
-                  {activeCerts.map((k) => (
-                    <span
-                      key={k}
-                      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                      style={{ backgroundColor: "rgba(212, 165, 116, 0.12)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }}
-                    >
-                      {t(`cert_${k}` as any)}
-                    </span>
-                  ))}
-                  {skills.map((s) => (
-                    <span
-                      key={s}
-                      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                      style={{ backgroundColor: "rgba(212, 165, 116, 0.08)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }}
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              );
-            })()}
+            {skills.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {skills.map((s) => (
+                  <span
+                    key={s}
+                    className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                    style={{ backgroundColor: "rgba(212, 165, 116, 0.08)", color: "var(--gold)", border: "1px solid rgba(212, 165, 116, 0.25)" }}
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-foreground/40">{t("profile_modal_empty")}</p>
+            )}
           </section>
 
           <section>

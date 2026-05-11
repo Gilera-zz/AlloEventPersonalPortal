@@ -94,7 +94,7 @@ function AdminStaff() {
 
       <div className="space-y-2">
         {filtered?.map((s) => {
-          const rawSkills = s.skills ?? s.special_skills;
+          const rawSkills = s.special_skills ?? s.skills;
           const skills = Array.isArray(rawSkills) ? rawSkills : [];
           return (
             <div
