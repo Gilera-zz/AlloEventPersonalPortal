@@ -103,7 +103,7 @@ function Profile() {
   const [certs, setCerts] = useState<Record<CertKey, boolean>>({ b_license: false, forklift: false, serving_permit: false, hot_works: false });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [addingSkill, setAddingSkill] = useState(false);
-  const { reportSaving, reportSaved } = useSaveStatus();
+  const { reportSaving, reportSaved, reportIdle } = useSaveStatus();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialLoadDone = useRef(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -196,11 +196,18 @@ function Profile() {
         })
         .eq("id", user.id);
       if (error) throw error;
+      qc.setQueryData(["profile", user.id], (old: any) =>
+        old ? { ...old, skills: s, special_skills: s } : old,
+      );
       reportSaved();
     } catch (err: any) {
+      reportIdle();
       toast.error(err.message);
     }
-  }, [user, reportSaving, reportSaved, t]);
+  }, [user, reportSaving, reportSaved, reportIdle, t, qc]);
+
+  const doAutoSaveRef = useRef(doAutoSave);
+  doAutoSaveRef.current = doAutoSave;
 
   useEffect(() => {
     if (!initialLoadDone.current || !user) return;
@@ -214,8 +221,14 @@ function Profile() {
   }, [form, certs, skills, doAutoSave, user]);
 
   useEffect(() => {
-    return () => {
+    const flush = () => {
       clearTimeout(debounceTimer.current);
+      if (initialLoadDone.current) doAutoSaveRef.current();
+    };
+    window.addEventListener("beforeunload", flush);
+    return () => {
+      window.removeEventListener("beforeunload", flush);
+      flush();
     };
   }, []);
 
@@ -304,6 +317,7 @@ function Profile() {
       return;
     }
     setAddingSkill(true);
+    immediateRef.current = true;
     setSkills((p) => [...p, v]);
     setSkillInput("");
     setTimeout(() => setAddingSkill(false), 600);
