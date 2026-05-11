@@ -103,6 +103,7 @@ function Profile() {
   const [certs, setCerts] = useState<Record<CertKey, boolean>>({ b_license: false, forklift: false, serving_permit: false, hot_works: false });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [addingSkill, setAddingSkill] = useState(false);
+  const [glowingSkills, setGlowingSkills] = useState<Set<string>>(new Set());
   const { reportSaving, reportSaved, reportIdle } = useSaveStatus();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialLoadDone = useRef(false);
@@ -168,7 +169,6 @@ function Profile() {
     if (!user) return;
     const f = formRef.current;
     const c = certsRef.current;
-    const s = skillsRef.current;
 
     const errors: Record<string, string> = {};
     if (f.phone && !/^07\d{8}$/.test(f.phone.replace(/\s|-/g, "")))
@@ -192,11 +192,9 @@ function Profile() {
       const payload = {
         ...f,
         drivers_license: serializeCerts(c),
-        skills: s,
-        special_skills: s,
         updated_at: new Date().toISOString(),
       };
-      console.log("[AutoSave] Saving profile, skills:", s);
+      console.log("[AutoSave] Saving profile (form + certs)");
       const { data: saved, error } = await supabase
         .from("profiles")
         .update(payload)
@@ -204,7 +202,7 @@ function Profile() {
         .select()
         .single();
       if (error) throw error;
-      console.log("[AutoSave] Save succeeded, skills:", s);
+      console.log("[AutoSave] Save succeeded");
       qc.setQueryData(["profile", user.id], (old: any) =>
         old ? { ...old, ...saved } : saved,
       );
@@ -232,7 +230,7 @@ function Profile() {
 
     debounceTimer.current = setTimeout(() => doAutoSaveRef.current(), delay);
     return () => clearTimeout(debounceTimer.current);
-  }, [form, certs, skills, user]);
+  }, [form, certs, user]);
 
   useEffect(() => {
     const flush = () => {
@@ -325,22 +323,53 @@ function Profile() {
     }
   }
 
-  function addSkill() {
+  async function saveSkillsDirect(next: string[]): Promise<boolean> {
+    if (!user) return false;
+    reportSaving();
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          skills: next,
+          special_skills: next,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+      if (error) throw error;
+      qc.setQueryData(["profile", user.id], (old: any) =>
+        old ? { ...old, skills: next, special_skills: next } : old,
+      );
+      reportSaved();
+      return true;
+    } catch (err: any) {
+      console.error("[Skills direct save failed]", err);
+      toast.error(t("save_failed_skills"));
+      reportIdle();
+      return false;
+    }
+  }
+
+  async function addSkill() {
     const v = skillInput.trim();
     if (!v) return;
     if (skills.some((s) => s.toLowerCase() === v.toLowerCase())) {
       setSkillInput("");
       return;
     }
+    const prevSkills = [...skills];
     const newSkills = [...skills, v];
     setAddingSkill(true);
-    immediateRef.current = true;
     setSkills(newSkills);
     setSkillInput("");
-    if (user) {
-      qc.setQueryData(["profile", user.id], (old: any) =>
-        old ? { ...old, skills: newSkills, special_skills: newSkills } : old
-      );
+    skillsRef.current = newSkills;
+
+    const ok = await saveSkillsDirect(newSkills);
+    if (!ok) {
+      setSkills(prevSkills);
+      skillsRef.current = prevSkills;
+    } else {
+      setGlowingSkills((prev) => new Set(prev).add(v));
+      setTimeout(() => setGlowingSkills((prev) => { const n = new Set(prev); n.delete(v); return n; }), 700);
     }
     setTimeout(() => setAddingSkill(false), 600);
   }
@@ -543,7 +572,7 @@ function Profile() {
               {skills.map((s) => (
                 <span
                   key={s}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium border transition-colors"
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium border transition-colors ${glowingSkills.has(s) ? "animate-gold-glow" : ""}`}
                   style={{
                     backgroundColor: "rgba(212, 165, 116, 0.08)",
                     borderColor: "rgba(212, 165, 116, 0.25)",
@@ -554,14 +583,15 @@ function Profile() {
                   <button
                     type="button"
                     aria-label={`${t("remove")} ${s}`}
-                    onClick={() => {
+                    onClick={async () => {
+                      const prevSkills = [...skills];
                       const newSkills = skills.filter((x) => x !== s);
-                      immediateRef.current = true;
                       setSkills(newSkills);
-                      if (user) {
-                        qc.setQueryData(["profile", user.id], (old: any) =>
-                          old ? { ...old, skills: newSkills, special_skills: newSkills } : old
-                        );
+                      skillsRef.current = newSkills;
+                      const ok = await saveSkillsDirect(newSkills);
+                      if (!ok) {
+                        setSkills(prevSkills);
+                        skillsRef.current = prevSkills;
                       }
                     }}
                     className="rounded-full hover:bg-white/[0.1] p-0.5 transition-colors"
