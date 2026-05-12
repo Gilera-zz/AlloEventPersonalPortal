@@ -75,7 +75,7 @@ const EMPTY_FORM: ProfileForm = {
 };
 
 function Profile() {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const { t } = useI18n();
   const qc = useQueryClient();
 
@@ -83,7 +83,6 @@ function Profile() {
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
   const [roles, setRoles] = useState<string[]>([]);
-  const [code, setCode] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -232,24 +231,6 @@ function Profile() {
 
   const setField = <K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) =>
     setForm((p) => ({ ...p, [key]: value }));
-
-  const redeem = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.rpc("redeem_admin_code", { _code: code.trim() });
-      if (error) throw error;
-      return data as boolean;
-    },
-    onSuccess: (ok) => {
-      if (ok) {
-        toast.success(t("redeem_success"));
-        setCode("");
-        setTimeout(() => location.reload(), 800);
-      } else {
-        toast.error(t("redeem_fail"));
-      }
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
 
   async function handleAvatarChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -727,28 +708,6 @@ function Profile() {
         </fieldset>
 
       </div>
-
-      {!isAdmin && (
-        <section className="mt-10 glass rounded-xl p-6">
-          <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-foreground/40">
-            {t("redeem_admin")}
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 mt-3">
-            <Input
-              placeholder={t("admin_code")}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-            <Button
-              onClick={() => redeem.mutate()}
-              disabled={!code || redeem.isPending}
-              variant="secondary"
-            >
-              {t("redeem")}
-            </Button>
-          </div>
-        </section>
-      )}
 
       {/* GDPR footer */}
       <footer className="mt-10 mb-6 text-center">
