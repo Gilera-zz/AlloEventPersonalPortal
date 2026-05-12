@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Check, AlertTriangle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { isProfileComplete } from "@/lib/profile-utils";
 
 export const Route = createFileRoute("/projects/")({
   component: () => <RequireAuth><Projects /></RequireAuth>,
@@ -27,12 +28,7 @@ function Projects() {
     },
   });
 
-  const profileComplete = !!profile
-    && !!profile.full_name?.trim()
-    && !!profile.address?.trim()
-    && !!profile.bank_name?.trim()
-    && !!profile.bank_clearing?.trim()
-    && !!profile.bank_account?.trim();
+  const profileComplete = isProfileComplete(profile);
 
   const { data: projects } = useQuery({
     queryKey: ["all-upcoming"],
@@ -82,9 +78,9 @@ function Projects() {
           <span className="text-xs font-mono uppercase tracking-[0.3em] text-foreground/50">{t("projects_kicker")}</span>
           <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight">{t("nav_projects")}</h1>
         </header>
-        <div className="glass rounded-xl p-8 text-center">
+        <div className="glass rounded-xl p-8 text-center border border-white/[0.06]">
           <AlertTriangle className="h-10 w-10 mx-auto mb-4" style={{ color: "var(--gold)" }} />
-          <p className="text-foreground/45 mb-6">{t("profile_incomplete_title")}</p>
+          <p className="text-foreground/60 mb-6 max-w-md mx-auto leading-relaxed">{t("profile_incomplete_title")}</p>
           <Button asChild>
             <Link to="/profile">{t("profile_incomplete_cta")}</Link>
           </Button>
