@@ -376,7 +376,7 @@ const dict = {
   inbox_kicker: { sv: "Inkorg", en: "Inbox" },
   inbox_title: { sv: "Min Inkorg", en: "My Inbox" },
   inbox_subtitle: { sv: "Dina notiser och uppdateringar.", en: "Your notifications and updates." },
-  inbox_empty: { sv: "Inga notiser att visa.", en: "No notifications to show." },
+  inbox_empty: { sv: "Du har inga nya notiser just nu.", en: "You have no new notifications right now." },
   inbox_mark_read: { sv: "Markera som läst", en: "Mark as read" },
   inbox_view_project: { sv: "Visa projekt", en: "View project" },
   inbox_marked_read: { sv: "Markerad som läst", en: "Marked as read" },
@@ -390,6 +390,12 @@ const dict = {
     sv: "Ett nytt projekt ({project}) har publicerats som matchar dina valda roller. Gå in och sök det idag!",
     en: "A new project ({project}) has been published that matches your selected roles. Go apply today!",
   },
+
+  // Notification bell dropdown
+  notif_dropdown_title: { sv: "Notiser", en: "Notifications" },
+  notif_view_all: { sv: "Visa alla notiser", en: "View all notifications" },
+  notif_no_new: { sv: "Inga nya notiser", en: "No new notifications" },
+  notif_just_now: { sv: "Just nu", en: "Just now" },
 
 } as const;
 
