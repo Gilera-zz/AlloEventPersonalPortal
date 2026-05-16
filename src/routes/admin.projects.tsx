@@ -101,7 +101,7 @@ function AdminProjects() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("projects").insert({
+      const { data: inserted, error } = await supabase.from("projects").insert({
         title: form.title,
         description: form.description || null,
         category: form.category || null,
@@ -115,8 +115,41 @@ function AdminProjects() {
         salary_info: form.salary_info || null,
         requirements: form.requirements || null,
         created_by: user!.id,
-      });
+      }).select("id, title, category").single();
       if (error) throw error;
+
+      if (inserted?.category) {
+        const { data: matchingProfiles } = await supabase
+          .from("profiles")
+          .select("id, roles")
+          .not("roles", "is", null);
+
+        const matched = (matchingProfiles ?? []).filter((p) =>
+          Array.isArray(p.roles) && p.roles.some((r: string) =>
+            r.toLowerCase() === inserted.category!.toLowerCase()
+          ),
+        );
+
+        if (matched.length > 0) {
+          const projectName = inserted.title;
+          const notifTitle = lang === "sv"
+            ? "Nytt matchande uppdrag tillgängligt!"
+            : "New matching job available!";
+          const notifMessage = lang === "sv"
+            ? `Ett nytt projekt (${projectName}) har publicerats som matchar dina valda roller. Gå in och sök det idag!`
+            : `A new project (${projectName}) has been published that matches your selected roles. Go apply today!`;
+
+          const notifications = matched.map((p) => ({
+            user_id: p.id,
+            project_id: inserted.id,
+            title: notifTitle,
+            message: notifMessage,
+            type: "matching_job",
+          }));
+
+          await supabase.from("notifications").insert(notifications as any);
+        }
+      }
     },
     onSuccess: () => { toast.success("OK"); setOpen(false); setForm(empty); qc.invalidateQueries({ queryKey: ["admin-projects"] }); },
     onError: (e: any) => toast.error(e.message),
@@ -227,7 +260,7 @@ function ProjectAdminPanel({ project }: { project: any }) {
           <TabsTrigger value="briefing">{t("tab_briefing")}</TabsTrigger>
         </TabsList>
         <TabsContent value="applicants">
-          <ApplicantsPanel projectId={project.id} />
+          <ApplicantsPanel project={project} />
         </TabsContent>
         <TabsContent value="staff">
           <StaffBookingPanel project={project} />
@@ -280,17 +313,35 @@ function useApplicants(projectId: string) {
   });
 }
 
-function ApplicantsPanel({ projectId }: { projectId: string }) {
-  const { t } = useI18n();
+function ApplicantsPanel({ project }: { project: any }) {
+  const { t, lang } = useI18n();
   const qc = useQueryClient();
   const [profileOpen, setProfileOpen] = useState<ApplicantProfile | null>(null);
+  const projectId = project.id;
 
   const { data: applicants, isLoading, error: queryError } = useApplicants(projectId);
 
   const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, userId }: { id: string; status: string; userId: string }) => {
       const { error } = await supabase.from("project_interests").update({ status }).eq("id", id);
       if (error) throw error;
+
+      if (status === "confirmed") {
+        const projectName = project.title || "—";
+        const title = lang === "sv" ? "Du har blivit bekräftad!" : "You have been confirmed!";
+        const message = lang === "sv"
+          ? `Grattis! Du har blivit utvald och bekräftad för projektet ${projectName}. Gå till projektet för att se detaljer och samlingsplats.`
+          : `Congratulations! You have been selected and confirmed for the project ${projectName}. Go to the project to see details and meeting point.`;
+
+        await supabase.from("notifications").insert({
+          user_id: userId,
+          project_id: projectId,
+          title,
+          message,
+          type: "confirmation",
+        } as any);
+      }
+
       return status;
     },
     onSuccess: (status) => {
@@ -356,7 +407,7 @@ function ApplicantsPanel({ projectId }: { projectId: string }) {
               <Button
                 size="sm"
                 variant={confirmed ? "secondary" : "default"}
-                onClick={() => updateStatus.mutate({ id: a.id, status: confirmed ? "interested" : "confirmed" })}
+                onClick={() => updateStatus.mutate({ id: a.id, status: confirmed ? "interested" : "confirmed", userId: a.user_id })}
               >
                 {confirmed ? <><Circle className="h-3 w-3 mr-1" /> {t("unconfirm")}</> : <><CheckCircle2 className="h-3 w-3 mr-1" /> {t("confirm")}</>}
               </Button>

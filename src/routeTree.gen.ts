@@ -14,6 +14,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as MyProjectsRouteImport } from './routes/my-projects'
+import { Route as InkorgRouteImport } from './routes/inkorg'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AvailabilityRouteImport } from './routes/availability'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -48,6 +49,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const MyProjectsRoute = MyProjectsRouteImport.update({
   id: '/my-projects',
   path: '/my-projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InkorgRoute = InkorgRouteImport.update({
+  id: '/inkorg',
+  path: '/inkorg',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/dashboard': typeof DashboardRoute
+  '/inkorg': typeof InkorgRoute
   '/my-projects': typeof MyProjectsRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/dashboard': typeof DashboardRoute
+  '/inkorg': typeof InkorgRoute
   '/my-projects': typeof MyProjectsRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/dashboard': typeof DashboardRoute
+  '/inkorg': typeof InkorgRoute
   '/my-projects': typeof MyProjectsRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/availability'
     | '/dashboard'
+    | '/inkorg'
     | '/my-projects'
     | '/privacy'
     | '/profile'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/availability'
     | '/dashboard'
+    | '/inkorg'
     | '/my-projects'
     | '/privacy'
     | '/profile'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/availability'
     | '/dashboard'
+    | '/inkorg'
     | '/my-projects'
     | '/privacy'
     | '/profile'
@@ -211,6 +223,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   AvailabilityRoute: typeof AvailabilityRoute
   DashboardRoute: typeof DashboardRoute
+  InkorgRoute: typeof InkorgRoute
   MyProjectsRoute: typeof MyProjectsRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
@@ -242,6 +255,13 @@ declare module '@tanstack/react-router' {
       path: '/my-projects'
       fullPath: '/my-projects'
       preLoaderRoute: typeof MyProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inkorg': {
+      id: '/inkorg'
+      path: '/inkorg'
+      fullPath: '/inkorg'
+      preLoaderRoute: typeof InkorgRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -351,6 +371,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   AvailabilityRoute: AvailabilityRoute,
   DashboardRoute: DashboardRoute,
+  InkorgRoute: InkorgRoute,
   MyProjectsRoute: MyProjectsRoute,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
