@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useNotifications, useMarkAsRead } from "@/hooks/useNotifications";
 import { useI18n } from "@/lib/i18n";
@@ -7,8 +7,12 @@ import { format } from "date-fns";
 import { sv, enUS } from "date-fns/locale";
 import { CheckCircle2, ExternalLink, Inbox } from "lucide-react";
 import { toast } from "sonner";
+import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/inkorg")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    highlight: (search.highlight as string) || undefined,
+  }),
   component: () => (
     <RequireAuth>
       <InboxPage />
@@ -21,6 +25,17 @@ function InboxPage() {
   const locale = lang === "sv" ? sv : enUS;
   const { data: notifications, isLoading } = useNotifications();
   const markAsRead = useMarkAsRead();
+  const { highlight } = useSearch({ from: "/inkorg" });
+  const [highlightedId, setHighlightedId] = useState<string | undefined>(highlight);
+  const highlightRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (highlight && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      const timer = setTimeout(() => setHighlightedId(undefined), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlight, notifications]);
 
   const handleMarkRead = (id: string) => {
     markAsRead.mutate(id, {
@@ -52,65 +67,75 @@ function InboxPage() {
       )}
 
       <div className="space-y-3">
-        {notifications?.map((n) => (
-          <div
-            key={n.id}
-            className="rounded-xl p-5 transition-all"
-            style={{
-              background: "rgba(255, 255, 255, 0.04)",
-              backdropFilter: "blur(15px)",
-              border: n.read
-                ? "1px solid rgba(255, 255, 255, 0.08)"
-                : "1px solid rgba(212, 165, 116, 0.3)",
-              boxShadow: n.read
-                ? "none"
-                : "0 0 20px rgba(212, 165, 116, 0.06), inset 0 0 20px rgba(212, 165, 116, 0.02)",
-            }}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  {!n.read && (
-                    <span
-                      className="h-2 w-2 rounded-full shrink-0"
-                      style={{ backgroundColor: "var(--gold)" }}
-                    />
-                  )}
-                  <h3 className="text-sm font-semibold truncate">{n.title}</h3>
-                </div>
-                <p className="text-sm text-foreground/55 leading-relaxed whitespace-pre-line">
-                  {n.message}
-                </p>
-                <div className="text-xs text-foreground/30 mt-2">
-                  {format(new Date(n.created_at), "PPP · HH:mm", { locale })}
+        {notifications?.map((n) => {
+          const isHighlighted = highlightedId === n.id;
+          return (
+            <div
+              key={n.id}
+              ref={highlight === n.id ? highlightRef : undefined}
+              className={`rounded-xl p-5 transition-all duration-700 ${isHighlighted ? "animate-gold-glow" : ""}`}
+              style={{
+                background: isHighlighted
+                  ? "rgba(212, 165, 116, 0.08)"
+                  : "rgba(255, 255, 255, 0.04)",
+                backdropFilter: "blur(15px)",
+                border: isHighlighted
+                  ? "1px solid rgba(212, 165, 116, 0.5)"
+                  : n.read
+                    ? "1px solid rgba(255, 255, 255, 0.08)"
+                    : "1px solid rgba(212, 165, 116, 0.3)",
+                boxShadow: isHighlighted
+                  ? "0 0 30px rgba(212, 165, 116, 0.12), inset 0 0 30px rgba(212, 165, 116, 0.04)"
+                  : n.read
+                    ? "none"
+                    : "0 0 20px rgba(212, 165, 116, 0.06), inset 0 0 20px rgba(212, 165, 116, 0.02)",
+              }}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    {!n.read && (
+                      <span
+                        className="h-2 w-2 rounded-full shrink-0"
+                        style={{ backgroundColor: "var(--gold)" }}
+                      />
+                    )}
+                    <h3 className="text-sm font-semibold truncate">{n.title}</h3>
+                  </div>
+                  <p className="text-sm text-foreground/55 leading-relaxed whitespace-pre-line">
+                    {n.message}
+                  </p>
+                  <div className="text-xs text-foreground/30 mt-2">
+                    {format(new Date(n.created_at), "PPP · HH:mm", { locale })}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.06]">
-              {!n.read && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => handleMarkRead(n.id)}
-                  disabled={markAsRead.isPending}
-                  className="text-xs"
-                >
-                  <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
-                  {t("inbox_mark_read")}
-                </Button>
-              )}
-              {n.project_id && (
-                <Link to="/projects/$projectId" params={{ projectId: n.project_id }}>
-                  <Button size="sm" variant="secondary" className="text-xs">
-                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                    {t("inbox_view_project")}
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.06]">
+                {!n.read && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleMarkRead(n.id)}
+                    disabled={markAsRead.isPending}
+                    className="text-xs"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
+                    {t("inbox_mark_read")}
                   </Button>
-                </Link>
-              )}
+                )}
+                {n.project_id && (
+                  <Link to="/projects/$projectId" params={{ projectId: n.project_id }}>
+                    <Button size="sm" variant="secondary" className="text-xs">
+                      <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                      {t("inbox_view_project")}
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </main>
   );

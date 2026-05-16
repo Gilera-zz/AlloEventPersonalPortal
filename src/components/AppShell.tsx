@@ -9,6 +9,7 @@ import logo from "@/assets/allo-logo.png";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { useUnreadCount } from "@/hooks/useNotifications";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, isAdmin, userRole, signOut } = useAuth();
@@ -149,23 +150,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <img src={logo} alt="Allo Event" className="h-7 w-auto" />
         </a>
         <div className="flex items-center gap-2">
-          {user && (
-            <Link to="/inkorg" aria-label={t("nav_inbox")} className="relative p-1">
-              <Bell className="h-5 w-5 text-foreground/55" strokeWidth={1.5} />
-              {unreadCount > 0 && (
-                <span
-                  className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center h-4 min-w-4 rounded-full px-1 text-[9px] font-bold"
-                  style={{
-                    backgroundColor: "var(--gold)",
-                    color: "#050505",
-                    boxShadow: "0 0 8px rgba(212, 165, 116, 0.5)",
-                  }}
-                >
-                  {unreadCount}
-                </span>
-              )}
-            </Link>
-          )}
+          {user && <NotificationBell />}
           {user && (
             <Link to="/profile" aria-label="Profile" className="rounded-full">
               <UserAvatar
@@ -199,7 +184,21 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <main className="flex-1 min-w-0 pt-14 md:pt-0">
+      <main className="flex-1 min-w-0 pt-14 md:pt-0 relative">
+        {/* Desktop top-right notification + profile bar */}
+        {user && (
+          <div className="hidden md:flex fixed top-0 right-0 z-30 items-center gap-3 px-6 py-3">
+            <NotificationBell />
+            <Link to="/profile" aria-label="Profile" className="rounded-full">
+              <UserAvatar
+                url={profile?.avatar_url}
+                name={profile?.full_name}
+                email={user.email}
+                className="h-8 w-8 ring-1 ring-white/[0.15]"
+              />
+            </Link>
+          </div>
+        )}
         {children}
       </main>
     </div>
