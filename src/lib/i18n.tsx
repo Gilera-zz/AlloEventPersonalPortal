@@ -371,6 +371,26 @@ const dict = {
   // Tab labels
   tab_staff: { sv: "Personal", en: "Staff" },
 
+  // Notifications / Inbox
+  nav_inbox: { sv: "Min Inkorg", en: "My Inbox" },
+  inbox_kicker: { sv: "Inkorg", en: "Inbox" },
+  inbox_title: { sv: "Min Inkorg", en: "My Inbox" },
+  inbox_subtitle: { sv: "Dina notiser och uppdateringar.", en: "Your notifications and updates." },
+  inbox_empty: { sv: "Inga notiser att visa.", en: "No notifications to show." },
+  inbox_mark_read: { sv: "Markera som läst", en: "Mark as read" },
+  inbox_view_project: { sv: "Visa projekt", en: "View project" },
+  inbox_marked_read: { sv: "Markerad som läst", en: "Marked as read" },
+  notif_confirmed_title: { sv: "Du har blivit bekräftad!", en: "You have been confirmed!" },
+  notif_confirmed_msg: {
+    sv: "Grattis! Du har blivit utvald och bekräftad för projektet {project}. Gå till projektet för att se detaljer och samlingsplats.",
+    en: "Congratulations! You have been selected and confirmed for the project {project}. Go to the project to see details and meeting point.",
+  },
+  notif_matching_title: { sv: "Nytt matchande uppdrag tillgängligt!", en: "New matching job available!" },
+  notif_matching_msg: {
+    sv: "Ett nytt projekt ({project}) har publicerats som matchar dina valda roller. Gå in och sök det idag!",
+    en: "A new project ({project}) has been published that matches your selected roles. Go apply today!",
+  },
+
 } as const;
 
 type Key = keyof typeof dict;

@@ -4,10 +4,11 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { LangToggle } from "@/components/LangToggle";
 import { Button } from "@/components/ui/button";
-import { Home, LayoutDashboard, Briefcase, User, LogOut, Menu, X, ShieldCheck, CalendarDays, ListChecks, Users, Settings2 } from "lucide-react";
+import { Home, LayoutDashboard, Briefcase, User, LogOut, Menu, X, ShieldCheck, CalendarDays, ListChecks, Users, Settings2, Bell } from "lucide-react";
 import logo from "@/assets/allo-logo.png";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useMyProfile } from "@/hooks/useMyProfile";
+import { useUnreadCount } from "@/hooks/useNotifications";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, isAdmin, userRole, signOut } = useAuth();
@@ -16,12 +17,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const nav = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const unreadCount = useUnreadCount();
 
   const links = [
     { to: "/", label: t("nav_portal_home"), icon: Home, admin: false },
     { to: "/dashboard", label: t("nav_start"), icon: LayoutDashboard, admin: false },
     { to: "/projects", label: t("nav_projects"), icon: Briefcase, admin: false },
     { to: "/my-projects", label: t("nav_my_projects"), icon: ListChecks, admin: false },
+    { to: "/inkorg", label: t("nav_inbox"), icon: Bell, admin: false },
     { to: "/availability", label: t("nav_availability"), icon: CalendarDays, admin: false },
     { to: "/profile", label: t("nav_my_page"), icon: User, admin: false },
     ...(isAdmin
@@ -78,6 +81,19 @@ export function AppShell({ children }: { children: ReactNode }) {
                 strokeWidth={1.5}
               />
               <span className="font-medium">{l.label}</span>
+              {l.to === "/inkorg" && unreadCount > 0 && (
+                <span
+                  className="ml-auto inline-flex items-center justify-center h-5 min-w-5 rounded-full px-1.5 text-[10px] font-bold"
+                  style={{
+                    backgroundColor: "rgba(212, 165, 116, 0.18)",
+                    color: "var(--gold)",
+                    border: "1px solid rgba(212, 165, 116, 0.35)",
+                    boxShadow: "0 0 8px rgba(212, 165, 116, 0.25)",
+                  }}
+                >
+                  {unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}
@@ -133,6 +149,23 @@ export function AppShell({ children }: { children: ReactNode }) {
           <img src={logo} alt="Allo Event" className="h-7 w-auto" />
         </a>
         <div className="flex items-center gap-2">
+          {user && (
+            <Link to="/inkorg" aria-label={t("nav_inbox")} className="relative p-1">
+              <Bell className="h-5 w-5 text-foreground/55" strokeWidth={1.5} />
+              {unreadCount > 0 && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center h-4 min-w-4 rounded-full px-1 text-[9px] font-bold"
+                  style={{
+                    backgroundColor: "var(--gold)",
+                    color: "#050505",
+                    boxShadow: "0 0 8px rgba(212, 165, 116, 0.5)",
+                  }}
+                >
+                  {unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
           {user && (
             <Link to="/profile" aria-label="Profile" className="rounded-full">
               <UserAvatar
