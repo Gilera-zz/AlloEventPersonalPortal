@@ -81,12 +81,12 @@ function InboxPage() {
                 backdropFilter: "blur(15px)",
                 border: isHighlighted
                   ? "1px solid rgba(212, 165, 116, 0.5)"
-                  : n.read
+                  : n.is_read
                     ? "1px solid rgba(255, 255, 255, 0.08)"
                     : "1px solid rgba(212, 165, 116, 0.3)",
                 boxShadow: isHighlighted
                   ? "0 0 30px rgba(212, 165, 116, 0.12), inset 0 0 30px rgba(212, 165, 116, 0.04)"
-                  : n.read
+                  : n.is_read
                     ? "none"
                     : "0 0 20px rgba(212, 165, 116, 0.06), inset 0 0 20px rgba(212, 165, 116, 0.02)",
               }}
@@ -94,7 +94,7 @@ function InboxPage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    {!n.read && (
+                    {!n.is_read && (
                       <span
                         className="h-2 w-2 rounded-full shrink-0"
                         style={{ backgroundColor: "var(--gold)" }}
@@ -112,7 +112,7 @@ function InboxPage() {
               </div>
 
               <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.06]">
-                {!n.read && (
+                {!n.is_read && (
                   <Button
                     size="sm"
                     variant="secondary"
