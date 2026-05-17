@@ -6,7 +6,7 @@ create table if not exists public.notifications (
   title text not null,
   message text not null,
   type text not null default 'general',
-  read boolean not null default false,
+  is_read boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -32,4 +32,4 @@ create policy "Authenticated users can insert notifications"
 
 -- Index for fast lookup by user
 create index if not exists idx_notifications_user_id on public.notifications(user_id);
-create index if not exists idx_notifications_user_unread on public.notifications(user_id) where read = false;
+create index if not exists idx_notifications_user_unread on public.notifications(user_id) where is_read = false;

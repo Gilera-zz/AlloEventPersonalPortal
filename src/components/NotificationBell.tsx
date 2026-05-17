@@ -18,8 +18,8 @@ export function NotificationBell() {
 
   const latest = (notifications ?? []).slice(0, 3);
 
-  const handleClick = (id: string, isRead: boolean) => {
-    if (!isRead) {
+  const handleClick = (id: string, is_read: boolean) => {
+    if (!is_read) {
       markAsRead.mutate(id);
     }
     setOpen(false);
@@ -94,12 +94,12 @@ export function NotificationBell() {
             latest.map((n) => (
               <button
                 key={n.id}
-                onClick={() => handleClick(n.id, n.read)}
+                onClick={() => handleClick(n.id, n.is_read)}
                 className="w-full text-left px-4 py-3 transition-colors hover:bg-white/[0.04] border-b last:border-b-0"
                 style={{ borderColor: "rgba(255, 255, 255, 0.06)" }}
               >
                 <div className="flex items-start gap-2.5">
-                  {!n.read && (
+                  {!n.is_read && (
                     <span
                       className="h-2 w-2 rounded-full shrink-0 mt-1.5"
                       style={{
@@ -108,7 +108,7 @@ export function NotificationBell() {
                       }}
                     />
                   )}
-                  <div className={`flex-1 min-w-0 ${n.read ? "pl-[18px]" : ""}`}>
+                  <div className={`flex-1 min-w-0 ${n.is_read ? "pl-[18px]" : ""}`}>
                     <p className="text-sm font-medium text-foreground truncate">
                       {n.title}
                     </p>

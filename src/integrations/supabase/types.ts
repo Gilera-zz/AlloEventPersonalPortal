@@ -151,7 +151,7 @@ export type Database = {
           title: string
           message: string
           type: string
-          read: boolean
+          is_read: boolean
           created_at: string
         }
         Insert: {
@@ -161,7 +161,7 @@ export type Database = {
           title: string
           message: string
           type?: string
-          read?: boolean
+          is_read?: boolean
           created_at?: string
         }
         Update: {
@@ -171,7 +171,7 @@ export type Database = {
           title?: string
           message?: string
           type?: string
-          read?: boolean
+          is_read?: boolean
           created_at?: string
         }
         Relationships: [

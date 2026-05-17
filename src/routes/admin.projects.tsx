@@ -147,7 +147,11 @@ function AdminProjects() {
             type: "matching_job",
           }));
 
-          await supabase.from("notifications").insert(notifications as any);
+          const { error: notifError } = await supabase.from("notifications").insert(notifications as any);
+          if (notifError) {
+            console.error("Notification Insert Error (matching_job):", notifError);
+            toast.error(`Notification Insert Error: ${notifError.message}`);
+          }
         }
       }
     },
@@ -333,13 +337,18 @@ function ApplicantsPanel({ project }: { project: any }) {
           ? `Grattis! Du har blivit utvald och bekräftad för projektet ${projectName}. Gå till projektet för att se detaljer och samlingsplats.`
           : `Congratulations! You have been selected and confirmed for the project ${projectName}. Go to the project to see details and meeting point.`;
 
-        await supabase.from("notifications").insert({
+        const { error: notifError } = await supabase.from("notifications").insert({
           user_id: userId,
           project_id: projectId,
           title,
           message,
           type: "confirmation",
         } as any);
+
+        if (notifError) {
+          console.error("Notification Insert Error (confirmation):", notifError);
+          toast.error(`Notification Insert Error: ${notifError.message}`);
+        }
       }
 
       return status;
@@ -347,6 +356,7 @@ function ApplicantsPanel({ project }: { project: any }) {
     onSuccess: (status) => {
       toast.success(status === "confirmed" ? t("staff_confirmed") : t("staff_unconfirmed"));
       qc.invalidateQueries({ queryKey: ["project-applicants", projectId] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
